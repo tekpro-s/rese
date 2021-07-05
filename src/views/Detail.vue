@@ -3,21 +3,21 @@
   <HeaderAuth />
     <div class="flex">
       <div class="shop">
-        <button @click="$router.push('/')">＜</button>
+        <button @click="$router.push('/')">&lt;</button>
         <h2 class="shop-title">{{shop.name}}</h2>
         <img
           class="card-img flex"
           :src=shop.image_url
         />
         <div class="flex">
-          <p class="area" @click="area()">#{{shop.area}}</p>
-          <p class="genre" @click="genre()">#{{shop.genre}}</p>
+          <p class="area" @click="area(shop.area.name)">#{{shop.area.name}}</p>
+          <p class="genre" @click="genre(shop.genre.name)">#{{shop.genre.name}}</p>
         </div>
         <p class="summary">{{shop.summary}}</p>
       </div>
       <div class="reservation">
         <h2 class="reservation-title">予約</h2>
-        <input class="flex" type="date" v-model="date"/>
+        <input class="flex" type="date" v-model="changeDateFormat"/>
         <select class="flex" name="time" v-model="time">
           <option v-for="time in times" :key="time.id" :value="time.time">{{time.time}}</option>
         </select>
@@ -30,7 +30,7 @@
         </select>
         <ul class="data">
           <li>Shop: {{ shop.name }}</li>
-          <li>Date:  {{ date }}</li>
+          <li>Date:  {{ changeDateFormat }}</li>
           <li>Time:  {{ time }}</li>
           <li>Number:  {{ number }}人</li>
         </ul>
@@ -49,10 +49,17 @@ export default {
   },
   data() {
     return {
-      date: this.nowDate(),
+      date: "",
       time: "10:00",
       number: 1,
-      shop: "",
+      shop: {
+        area: {
+          name: ""
+        },
+        genre: {
+          name: ""
+        }
+      },
       times: [
         {
           id: 1,
@@ -87,83 +94,81 @@ export default {
           time: "13:30"
         },
         {
-          id: 8,
+          id: 9,
           time: "14:00"
         },
         {
-          id: 8,
+          id: 10,
           time: "14:30"
         },
         {
-          id: 9,
+          id: 11,
           time: "15:00"
         },
         {
-          id: 9,
+          id: 12,
           time: "15:30"
         },
         {
-          id: 10,
+          id: 13,
           time: "16:00"
         },
         {
-          id: 11,
+          id: 14,
           time: "16:30"
         },
         {
-          id: 12,
+          id: 15,
           time: "17:00"
         },
         {
-          id: 13,
+          id: 16,
           time: "17:30"
         },
         {
-          id: 14,
+          id: 17,
           time: "18:00"
         },
         {
-          id: 15,
+          id: 18,
           time: "18:30"
         },
         {
-          id: 16,
+          id: 19,
           time: "19:00"
         },
         {
-          id: 17,
+          id: 20,
           time: "19:30"
         },
         {
-          id: 18,
+          id: 21,
           time: "20:00"
         },
       ]
     };
   },
   methods: {
-    area() {
-      this.$store.commit("area", this.shop.area);
+    area(area_name) {
+      this.$store.commit("area", area_name);
       this.$router.push("/");
     },
-    genre() {
-      this.$store.commit("genre", this.shop.genre);
+    genre(genre_name) {
+      this.$store.commit("genre", genre_name);
       this.$router.push("/");
     },
     async getShop() {
-      const shop = await axios.get("http://localhost:3000/shops/" + this.shop_id);
-      console.log(shop);
-      this.shop = shop.data;
+      const shop = await axios.get("http://localhost:8000/api/v1/shops/" + this.shop_id);
+      this.shop = shop.data.data;
       console.log(this.shop);
     },
     async reservation() {
       try {
-        const reservation = await axios.post("http://localhost:3000/reservations", {
-            shop_id: this.shop_id,
-            user_id: 1,
-            date: this.date,
-            time: this.time,
-            number: this.number,
+        const reservation = await axios.post("http://localhost:8000/api/v1/shops/" + this.shop_id + "/reservations", {
+          user_id: this.$store.state.user.id,
+          date: this.date,
+          time: this.time,
+          number: this.number,
         })
         console.log(reservation);
         this.$router.push("/done");
@@ -171,20 +176,20 @@ export default {
           alert(e);
       }
     },
-    // 現在日取得
-    nowDate() {
-      var today = new Date();
-      today =
-        today.getFullYear() +
-        "-0" +
-        (today.getMonth() + 1) +
-        "-" +
-        today.getDate();
-      return today;
-    }
   },
   created() {
     this.getShop();
+  },
+  computed: {
+    changeDateFormat() {
+      var today = new Date();
+      var y = today.getFullYear();
+      var m = ('00' + (today.getMonth()+1)).slice(-2);
+      var d = ('00' + today.getDate()).slice(-2);
+      return (y + '-' + m + '-' + d);
+
+      //return this.date.replaceAll('-', '/');
+    }
   },
   components: {
     HeaderAuth

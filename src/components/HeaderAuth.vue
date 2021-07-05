@@ -1,7 +1,8 @@
 <template>
  <div class="header flex">
-   <div class="left">
-     <img class="logo" src="../assets/menu.png" @click="$router.push('/mypage')"/>
+   <div class="left flex">
+     <img class="logo" src="../assets/menu.png" @click="$router.push('/mypage'); transition()"/>
+    <p>ログインユーザー：{{this.$store.state.user.name}}さん</p>
    </div>
    <div class="right flex">
      <router-link @click.native="transition" :to="{name:'Register'}" class="link">新規登録</router-link>
@@ -25,6 +26,9 @@ export default {
 
 <style scoped>
 .right {
+  align-items: center;
+}
+.left {
   align-items: center;
 }
 .link {

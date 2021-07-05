@@ -1,10 +1,10 @@
 <template>
  <div>
    <HeaderAuth />
-   <button @click="$router.push('/')">＜</button>
+   <button @click="$router.push('/')">&lt;</button>
    <div class="flex">
       <div >
-        <h2 class="title">予約状況</h2>
+        <h2 class="title">{{this.$store.state.user.name}}さんの予約状況</h2>
         <div class="reservation" v-for="reservation in reservations" :key="reservation.id" >
           <ul>
             <li>予約{{reservation.id}}</li>
@@ -13,27 +13,29 @@
             <li>Time:  {{reservation.time}}</li>
             <li>Number:  {{reservation.number}}人</li>
           </ul>
-          <img class="icon" src="../assets/cancel.png" @click="cancel(reservation.id)" alt />
+          <img class="icon" src="../assets/cancel.png" @click="cancel(reservation.shop_id, reservation.id)" alt />
         </div>
       </div>
       <div class="like">
         <h2 class="title">お気に入り店舗</h2>
         <div class="home flex">
-            <div class="card" v-for="like in likes" :key="like.id" >
+            <div class="card" v-for="shop in filteredShops" :key="shop.id" >
               <img
                 class="card-img"
-                :src= like.image_url
+                :src= shop.image_url
               />
               <div class="card-content">
-                <h3 class="card-title">{{ like.name }}</h3>
+                <h3 class="card-title">{{ shop.name }}</h3>
               </div>
-              <router-link :to="{name:'Shops'}" class="area">#{{like.area}}</router-link>
-              <router-link :to="{name:'Shops'}" class="genre">#{{like.genre}}</router-link>
+              <div class="flex">
+                <p class="area" @click="area(shop.area.name)">#{{shop.area.name}}</p>
+                <p class="genre" @click="genre(shop.genre.name)">#{{shop.genre.name}}</p>
+              </div>
               <div class="flex">
                 <div class="card-link">
-                  <button @click="$router.push({ name: 'Detail', params: { shop_id: like.shop_id }})">詳しくみる</button>
+                  <button @click="detail(shop.id)">詳しくみる</button>
                 </div>
-                <img class="icon" src="../assets/like_true.png" @click="fav(like.id)" alt />
+                <img class="icon" src="../assets/like_true.png" @click="deleteFav(shop.id-1)" alt />
               </div>
             </div>
           </div>
@@ -59,41 +61,37 @@ export default {
     HeaderAuth
   },
   methods: {
-    async cancel(id){
-      const reservations = await axios.delete("http://localhost:3000/reservations/" + id);
-      console.log(reservations);
-      this.$router.go({
-        path: this.$router.currentRoute.path,
-        force: true,
-      });
-    },
-    async fav(index) {
+    async cancel(shop_id, reservation_id){
       try {
-        // お気に入り削除
-        //alert(index);
-        //alert(this.likes[index].shop_id);
-        // axios({
-        //   method: "delete",
-        //   url: "http://localhost:3000/likes",
-        //   data: {
-        //    id: index
-        //   },
-        // })
-        const like = await axios.delete("http://localhost:3000/likes/" + index);
-        console.log(this.likes[index].shop_id);
-        //alert(this.likes[index].shop_id);
-        // ショップのlike更新
-        // const shop = await axios.put("http://localhost:3000/shops/" + this.likes[index].shop_id, {
-        //   name: this.likes[index].name,
-        //   area: this.likes[index].area,
-        //   genre: this.likes[index].genre,
-        //   summary: this.likes[index].summary,
-        //   image_url: this.likes[index].image_url,
-        //   like: false
-        // })
+        const reservations = await axios.delete("http://localhost:8000/api/v1/shops/" + shop_id + "/reservations", {
+          params: { reservation_id: reservation_id }
+        });
 
-        console.log(like);
-        //console.log(shop);
+        console.log(reservations);
+        this.$router.go({
+          path: this.$router.currentRoute.path,
+          force: true,
+        });
+      } catch (e) {
+          alert(e);
+      }
+    },
+    area(area_name) {
+      this.$store.commit("area", area_name);
+      this.$router.push("/");
+    },
+    genre(genre_name) {
+      this.$store.commit("genre", genre_name);
+      this.$router.push("/");
+    },
+    async deleteFav(index) {
+      try {
+        const likes = await axios.delete("http://localhost:8000/api/v1/shops/" + this.shops[index].id + "/likes", {
+          params: { user_id: this.$store.state.user.id }
+        });
+
+        console.log(likes);
+
         this.$router.go({
           path: this.$router.currentRoute.path,
           force: true,
@@ -104,19 +102,45 @@ export default {
       }
     }, 
     async getReservations() {
-      const reservations = await axios.get("http://localhost:3000/reservations");
-      this.reservations = reservations.data;
+      const reservations = await axios.get("http://localhost:8000/api/v1/users/" + this.$store.state.user.id + "/reservations");
+      this.reservations = reservations.data.data;
       console.log(this.reservations);
     },
     async getLikes() {
-      const likes = await axios.get("http://localhost:3000/likes");
-      this.likes = likes.data;
+      const likes = await axios.get("http://localhost:8000/api/v1/users/" + this.$store.state.user.id + "/likes"  );
+      this.likes = likes.data.data;
       console.log(this.likes);
+    },
+    async getShops() {
+      const shops = await axios.get("http://localhost:8000/api/v1/shops");
+      this.shops = shops.data.data;
+      console.log(this.shops);
+    }
+  },
+  computed: {
+    filteredShops() {
+      // いいねに紐づくショップ情報を取得
+      const shops = [];
+
+      for (const i in this.shops) {
+        const shop = this.shops[i];
+
+        // ログイン中のユーザーIDが、ショップに紐づくいいねリストにあるか確認
+        const result = shop.likes.some((value) => {
+          return value.user_id == this.$store.state.user.id;
+        });
+        if (result) {
+          shops.push(shop);
+        }
+      }
+
+      return shops;
     },
   },
   created() {
     this.getReservations();
     this.getLikes();
+    this.getShops();
   },
 };
 </script>
@@ -208,6 +232,10 @@ export default {
 .area {
   margin-left: 20px;
   margin-right: 10px;
+  cursor: pointer;
+}
+.genre {
+  cursor: pointer;
 }
 .icon {
   padding: 20px 0 10px;
@@ -215,4 +243,5 @@ export default {
   height: 10%;
   cursor: pointer;
 }
+
 </style>

@@ -43,16 +43,9 @@ export default new Vuex.Store({
           password: password,
         }
       );
-      // const responseUser = await axios.get(
-      //   "http://localhost:8000/api/v1/users",
-      //   {
-      //     params: {
-      //       email: email,
-      //     },
-      //   }
-      // );
+
       commit("auth", responseLogin.data.auth);
-      //commit("user", responseUser.data.data[0]);
+      commit("user", responseLogin.data.user);
       router.replace("/");
     },
     logout({ commit }) {

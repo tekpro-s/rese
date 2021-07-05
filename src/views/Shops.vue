@@ -10,9 +10,9 @@
       <option v-for="genre in genres" :key="genre.id" :value="genre.name">{{genre.name}}</option>
     </select>
     <input class="search" placeholder="Search" v-model="keyword"/>
-    {{shops.data}}
     <div class="home flex">
         <div class="card" v-for="shop in filteredShops" :key="shop.id" >
+            {{shop.likes}}
           <img
             class="card-img"
             :src= shop.image_url
@@ -21,15 +21,15 @@
             <h2 class="card-title">{{ shop.name }}</h2>
           </div>
           <div class="flex">
-            <p class="area" @click="search(shop.area, '', '')" >#{{shop.area}}</p>
-            <p class="genre" @click="search('', shop.genre, '')" >#{{shop.genre}}</p>
+            <p class="area" @click="setArea(shop.area.name)" >#{{shop.area.name}}</p>
+            <p class="genre" @click="setGenre(shop.genre.name)" >#{{shop.genre.name}}</p>
           </div>
           <div class="flex">
             <div class="card-link">
               <button @click="detail(shop.id)">詳しくみる</button>
             </div>
-            <img v-if="!shop.like" class="icon" src="../assets/like_false.png" @click="fav(shop.id-1)" alt />
-            <img v-if="shop.like" class="icon" src="../assets/like_true.png" @click="fav(shop.id-1)" alt />
+            <img v-if="!getFav(shop.id-1)" class="icon" src="../assets/like_false.png" @click="setFav(shop.id-1)" alt />
+            <img v-if="getFav(shop.id-1)" class="icon" src="../assets/like_true.png" @click="setFav(shop.id-1)" alt />
           </div>
         </div>
       </div>
@@ -43,16 +43,50 @@ export default {
   components: {
     HeaderAuth
   },
-  props: {
-    props_area: String,
-    props_genre: String,
-  },
   data() {
     return {
       shops: [],
       shops_all: [],
-      areas: [],
-      genres: [],
+      areas: [
+        {
+          id: 1,
+          name: "東京都"
+        },
+        {
+          id: 2,
+          name: "大阪府"
+        },
+        {
+          id: 3,
+          name: "福岡県"
+        }
+      ],
+      genres: [
+        {
+          id: 1,
+          name: "寿司"
+        },
+        {
+          id: 2,
+          name: "焼肉"
+        },
+        {
+          id: 3,
+          name: "居酒屋"
+        },
+        {
+          id: 4,
+          name: "ラーメン"
+        },
+        {
+          id: 5,
+          name: "焼肉"
+        },
+        {
+          id: 6,
+          name: "イタリアン"
+        }
+      ],
       area: this.$store.state.area,
       genre: this.$store.state.genre,
       keyword: ""
@@ -64,73 +98,51 @@ export default {
       this.$store.commit("genre", "");
       this.$router.push({ name: 'Detail', params: { shop_id: id } })
     },
-
-
-    propsFilteredShops() {
-      alert(this.props_area);
-      alert(this.shops);
-      const shopsArray = [];
-      for (const i in this.shops) {
-        if ((this.area == "" || this.shops[i].area == this.props_area)
-          && (this.genre == "" || this.shops[i].genre == this.props_genre)){
-          const shop = this.shops[i];
-          shopsArray.push(shop);
-        }
-      }
-      this.shops = shopsArray;
-      alert(this.shops);
+    setArea(area_name) {
+      this.area = area_name;
     },
-    async fav(index) {
+    setGenre(genre_name) {
+      this.genre = genre_name;
+    },
+    getFav(index) {
+      // ログイン中のユーザーIDが、ショップに紐づくいいねリストにあるか確認
+      const result = this.shops[index].likes.some((value) => {
+        return value.user_id == this.$store.state.user.id;
+      });
+
+      return result;
+    },
+    async setFav(index) {
       try {
-        // お気に入り追加していない場合
-        if (!this.shops[index].like) {
-          // お気に入り追加
-          const like = await axios.post("http://localhost:3000/likes", {
-            shop_id: this.shops[index].id,
-            user_id: 1,
-            name: this.shops[index].name,
-            area: this.shops[index].area,
-            genre: this.shops[index].genre,
-            image_url: this.shops[index].image_url,
-          })
-          // ショップのlike更新
-          const shop = await axios.put("http://localhost:3000/shops/" + this.shops[index].id, {
-            name: this.shops[index].name,
-            area: this.shops[index].area,
-            genre: this.shops[index].genre,
-            summary: this.shops[index].summary,
-            image_url: this.shops[index].image_url,
-            like: true
-          })
+        // ログイン中のユーザーIDが、ショップに紐づくいいねリストにあるか確認
+        const result = this.getFav(index);
 
-          console.log(like);
-          console.log(shop);
+        // いいねが存在するか確認
+        if (result) {
+          // いいねが存在する場合いいね削除
+          const likes = await axios.delete("http://localhost:8000/api/v1/shops/" + this.shops[index].id + "/likes", {
+            params: { user_id: this.$store.state.user.id }
+          });
+
+          console.log(likes);
+
+          this.$router.go({
+            path: this.$router.currentRoute.path,
+            force: true,
+          });
         } else {
-          axios({
-              method: "delete",
-              url: "http://localhost:3000/likes",
-              data: {
-                shop_id: this.shops[index].id,
-              },
-          })
-          // ショップのlike更新
-          const shop = await axios.put("http://localhost:3000/shops/" + this.shops[index].id, {
-            name: this.shops[index].name,
-            area: this.shops[index].area,
-            genre: this.shops[index].genre,
-            summary: this.shops[index].summary,
-            image_url: this.shops[index].image_url,
-            like: false
-          })
+          // いいねが存在しない場合いいね追加
+          const likes = await axios.put("http://localhost:8000/api/v1/shops/" + this.shops[index].id + "/likes", {
+            user_id: this.$store.state.user.id
+          });
 
-          //console.log(like);
-          console.log(shop);
+          console.log(likes);
+
+          this.$router.go({
+            path: this.$router.currentRoute.path,
+            force: true,
+          });
         }
-
-        this.$router.go({
-          path: this.$router.currentRoute.path,
-          force: true,
-        });
 
       } catch (error) {
         alert(error);
@@ -139,18 +151,16 @@ export default {
     async getShops() {
       const shops = await axios.get("http://localhost:8000/api/v1/shops");
       this.shops = shops.data.data;
-      //alert(this.shops);
-      //this.shops_all = shops.data;
       console.log(this.shops);
     },
     async getAreas() {
-      const areas = await axios.get("http://localhost:3000/areas");
-      this.areas = areas.data;
+      const areas = await axios.get("http://localhost:8000/api/v1/areas");
+      this.areas = areas.data.data;
       console.log(this.areas);
     },
     async getGenres() {
-      const genres = await axios.get("http://localhost:3000/genres");
-      this.genres = genres.data;
+      const genres = await axios.get("http://localhost:8000/api/v1/genres");
+      this.genres = genres.data.data;
       console.log(this.genres);
     }
   },
@@ -159,11 +169,12 @@ export default {
       // 全店舗の元データを読み込む
       //this.shops = this.shops_all;
       const shops = [];
+
       for (const i in this.shops) {
         const shop = this.shops[i];
         if (shop.name.indexOf(this.keyword) !== -1) {
-          if (shop.area == this.area || !this.area) {
-            if (shop.genre == this.genre || !this.genre) {
+          if (shop.area.name == this.area || !this.area) {
+            if (shop.genre.name == this.genre || !this.genre) {
               shops.push(shop);
             }
           }

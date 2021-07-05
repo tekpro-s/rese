@@ -16,7 +16,6 @@
 
 <script>
 import HeaderAuth from "../components/HeaderAuth";
-// import axios from "axios";
 export default {
   data() {
     return {
@@ -33,25 +32,6 @@ export default {
         email: this.email,
         password: this.password
       });
-
-      // try {
-      //   const users = await axios.get("http://localhost:3000/users");
-      //   console.log(users);
-      //   this.$router.push("/");
-      // } catch (e) {
-      //   alert(e);
-      // }
-      // axios
-      //   .get("http://localhost:3000/users")
-      //   .then(response => {
-      //     console.log(response);
-      //     this.$router.push("/");
-      //   })
-      //   .catch(error => {
-      //     alert(error);
-      //   });
-
-
     }
   }
 };
