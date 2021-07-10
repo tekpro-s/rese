@@ -10,9 +10,10 @@
       <option v-for="genre in genres" :key="genre.id" :value="genre.name">{{genre.name}}</option>
     </select>
     <input class="search" placeholder="Search" v-model="keyword"/>
+    {{getFav}}
     <div class="home flex">
         <div class="card" v-for="shop in filteredShops" :key="shop.id" >
-            {{shop.likes}}
+                    {{shop.likes}}
           <img
             class="card-img"
             :src= shop.image_url
@@ -28,8 +29,8 @@
             <div class="card-link">
               <button @click="detail(shop.id)">詳しくみる</button>
             </div>
-            <img v-if="!getFav(shop.id-1)" class="icon" src="../assets/like_false.png" @click="setFav(shop.id-1)" alt />
-            <img v-if="getFav(shop.id-1)" class="icon" src="../assets/like_true.png" @click="setFav(shop.id-1)" alt />
+            <img v-if="!getFav[shop.id-1]" class="icon" src="../assets/like_false.png" @click="setFav(shop.id-1)" alt />
+            <img v-if="getFav[shop.id-1]" class="icon" src="../assets/like_true.png" @click="setFav(shop.id-1)" alt />
           </div>
         </div>
       </div>
@@ -46,47 +47,9 @@ export default {
   data() {
     return {
       shops: [],
-      shops_all: [],
-      areas: [
-        {
-          id: 1,
-          name: "東京都"
-        },
-        {
-          id: 2,
-          name: "大阪府"
-        },
-        {
-          id: 3,
-          name: "福岡県"
-        }
-      ],
-      genres: [
-        {
-          id: 1,
-          name: "寿司"
-        },
-        {
-          id: 2,
-          name: "焼肉"
-        },
-        {
-          id: 3,
-          name: "居酒屋"
-        },
-        {
-          id: 4,
-          name: "ラーメン"
-        },
-        {
-          id: 5,
-          name: "焼肉"
-        },
-        {
-          id: 6,
-          name: "イタリアン"
-        }
-      ],
+      likes: [],
+      areas: [],
+      genres: [],
       area: this.$store.state.area,
       genre: this.$store.state.genre,
       keyword: ""
@@ -104,18 +67,12 @@ export default {
     setGenre(genre_name) {
       this.genre = genre_name;
     },
-    getFav(index) {
-      // ログイン中のユーザーIDが、ショップに紐づくいいねリストにあるか確認
-      const result = this.shops[index].likes.some((value) => {
-        return value.user_id == this.$store.state.user.id;
-      });
-
-      return result;
-    },
     async setFav(index) {
       try {
         // ログイン中のユーザーIDが、ショップに紐づくいいねリストにあるか確認
-        const result = this.getFav(index);
+        const result = this.shops[index].likes.some((value) => {
+          return value.user_id == this.$store.state.user.id;
+        });
 
         // いいねが存在するか確認
         if (result) {
@@ -125,11 +82,6 @@ export default {
           });
 
           console.log(likes);
-
-          this.$router.go({
-            path: this.$router.currentRoute.path,
-            force: true,
-          });
         } else {
           // いいねが存在しない場合いいね追加
           const likes = await axios.put("http://localhost:8000/api/v1/shops/" + this.shops[index].id + "/likes", {
@@ -138,11 +90,23 @@ export default {
 
           console.log(likes);
 
-          this.$router.go({
-            path: this.$router.currentRoute.path,
-            force: true,
-          });
         }
+
+        // console.log("1:" + this.shops[index].likes[0]);
+        // this.getShops();
+        // console.log("2:" + this.shops[index].likes[0]);
+        // this.shops[index].likes.some((value) => {
+        //   console.log("1:" + value.user_id);
+        // });
+        // alert(this.shops[index].id);
+        const shop = await axios.get("http://localhost:8000/api/v1/shops/" + this.shops[index].id);
+        this.shops.splice(index, 1, shop.data.data);
+        console.log(shop);
+        // console.log(shop.data.data);
+        // console.log(shop.data);
+        // console.log(this.shops[index]);
+        // this.shops[index] = shop.data.data;
+        //this.likes[index] = 
 
       } catch (error) {
         alert(error);
@@ -167,7 +131,6 @@ export default {
   computed: {
     filteredShops() {
       // 全店舗の元データを読み込む
-      //this.shops = this.shops_all;
       const shops = [];
 
       for (const i in this.shops) {
@@ -183,6 +146,20 @@ export default {
       return shops;
 
     },
+    getFav() {
+      const likes = [];
+
+      for (const i in this.shops) {
+        // ログイン中のユーザーIDが、ショップに紐づくいいねリストにあるか確認
+        const result = this.shops[i].likes.some((value) => {
+          return value.user_id == this.$store.state.user.id;
+        });
+        likes.push(result);
+        
+      }
+
+      return likes;
+    }
   },
   created() {
     this.getShops();

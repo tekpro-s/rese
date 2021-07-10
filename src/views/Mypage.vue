@@ -5,21 +5,22 @@
    <div class="flex">
       <div >
         <h2 class="title">{{this.$store.state.user.name}}さんの予約状況</h2>
-        <div class="reservation" v-for="reservation in reservations" :key="reservation.id" >
+        <div class="reservation" v-for="(reservation, index) in reservations" :key="reservation.id" >
           <ul>
-            <li>予約{{reservation.id}}</li>
+            <li>予約{{index+1}}</li>
             <li>Shop: {{reservation.shop_id}}</li>
             <li>Date:  {{reservation.date}}</li>
             <li>Time:  {{reservation.time}}</li>
             <li>Number:  {{reservation.number}}人</li>
           </ul>
-          <img class="icon" src="../assets/cancel.png" @click="cancel(reservation.shop_id, reservation.id)" alt />
+          <img class="icon" src="../assets/cancel.png" @click="cancel(reservation.shop_id, reservation.id, index)" alt />
         </div>
       </div>
       <div class="like">
         <h2 class="title">お気に入り店舗</h2>
         <div class="home flex">
-            <div class="card" v-for="shop in filteredShops" :key="shop.id" >
+            <div class="card" v-for="(shop) in filteredShops" :key="shop.id" >
+            {{shop.likes}}
               <img
                 class="card-img"
                 :src= shop.image_url
@@ -33,7 +34,7 @@
               </div>
               <div class="flex">
                 <div class="card-link">
-                  <button @click="detail(shop.id)">詳しくみる</button>
+                  <button @click="detail(shop.id)">詳しくみる</button>s
                 </div>
                 <img class="icon" src="../assets/like_true.png" @click="deleteFav(shop.id-1)" alt />
               </div>
@@ -61,17 +62,15 @@ export default {
     HeaderAuth
   },
   methods: {
-    async cancel(shop_id, reservation_id){
+    async cancel(shop_id, reservation_id, index){
       try {
         const reservations = await axios.delete("http://localhost:8000/api/v1/shops/" + shop_id + "/reservations", {
           params: { reservation_id: reservation_id }
         });
-
         console.log(reservations);
-        this.$router.go({
-          path: this.$router.currentRoute.path,
-          force: true,
-        });
+
+        this.reservations.splice(index, 1);
+
       } catch (e) {
           alert(e);
       }
@@ -90,12 +89,18 @@ export default {
           params: { user_id: this.$store.state.user.id }
         });
 
+        console.log("http://localhost:8000/api/v1/shops/" + this.shops[index].id + "/likes");
         console.log(likes);
 
-        this.$router.go({
-          path: this.$router.currentRoute.path,
-          force: true,
-        });
+        const shop = await axios.get("http://localhost:8000/api/v1/shops/" + this.shops[index].id);
+        this.shops.splice(index, 1, shop.data.data);
+
+        //         this.$router.go({
+        //   path: this.$router.currentRoute.path,
+        //   force: true,
+        // });
+
+        //console.log(shop);
 
       } catch (error) {
         alert(error);
@@ -136,6 +141,17 @@ export default {
 
       return shops;
     },
+    // filteredReservations() {
+    //   // ログインユーザーに紐づく予約情報を取得
+    //   const reservations = [];
+
+    //   for (const i in this.reservations) {
+    //     const reservation = this.reservations[i];
+    //     reservations.push(reservation);
+    //   }
+
+    //   return reservations;
+    // },
   },
   created() {
     this.getReservations();
