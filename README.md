@@ -2,14 +2,14 @@
 
 飲食店予約サービスのフロントエンドです。
 
-## Project setup
+## プロジェクトセットアップ
 ```
 git clone https://github.com/tekpro-s/rese.git rese
 cd rese/
 yarn install
 ```
 
-### Compiles and hot-reloads for development
+### Vue.jsサーバー立ち上げ
 ```
 yarn serve
 ```
