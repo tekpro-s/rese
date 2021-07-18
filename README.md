@@ -1,24 +1,16 @@
 # rese
 
-## Project setup
+飲食店予約サービスのフロントエンドです。
+
+## プロジェクトセットアップ
 ```
+git clone https://github.com/tekpro-s/rese.git rese
+cd rese/
 yarn install
 ```
 
-### Compiles and hot-reloads for development
+### Vue.jsサーバー立ち上げ
 ```
 yarn serve
 ```
 
-### Compiles and minifies for production
-```
-yarn build
-```
-
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
