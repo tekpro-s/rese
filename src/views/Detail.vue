@@ -3,7 +3,7 @@
   <HeaderAuth />
     <div class="flex">
       <div class="shop">
-        <button @click="$router.push('/')">&lt;</button>
+        <BackButton />
         <h2 class="shop-title">{{shop.name}}</h2>
         <img
           class="card-img flex"
@@ -16,25 +16,42 @@
         <p class="summary">{{shop.summary}}</p>
       </div>
       <div class="reservation">
-        <h2 class="reservation-title">予約</h2>
-        <input class="flex" type="date" v-model="changeDateFormat"/>
-        <select class="flex" name="time" v-model="time">
-          <option v-for="time in times" :key="time.id" :value="time.time">{{time.time}}</option>
-        </select>
-        <select id="number" name="number" v-model="number">
-          <option value="">選択してください</option>
-          <option value="1">1人</option>
-          <option value="2">2人</option>
-          <option value="3">3人</option>
-          <option value="4">4人</option>
-        </select>
-        <ul class="data">
-          <li>Shop: {{ shop.name }}</li>
-          <li>Date:  {{ changeDateFormat }}</li>
-          <li>Time:  {{ time }}</li>
-          <li>Number:  {{ number }}人</li>
-        </ul>
-        <button class="reservation-button" @click="reservation">予約する</button>
+        <validation-observer ref="obs" v-slot="ObserverProps">
+          <h2 class="reservation-title">予約</h2>
+          <validation-provider name="date" rules="required">
+            <div slot-scope="ProviderProps">
+              <input class="flex" type="date" v-model="date"/>
+              <p class="error">{{ ProviderProps.errors[0] }}</p>
+            </div>
+          </validation-provider>
+          <validation-provider name="time" rules="required">
+            <div slot-scope="ProviderProps">
+              <select class="flex" name="time" v-model="time">
+                <option v-for="time in times" :key="time.id" :value="time.time">{{time.time}}</option>
+              </select>
+              <p class="error">{{ ProviderProps.errors[0] }}</p>
+            </div>
+          </validation-provider>
+          <validation-provider name="number" rules="required|numeric">
+            <div slot-scope="ProviderProps">
+              <select id="number" name="number" v-model="number">
+                <option value="">選択してください</option>
+                <option value="1">1人</option>
+                <option value="2">2人</option>
+                <option value="3">3人</option>
+                <option value="4">4人</option>
+              </select>
+              <p class="error">{{ ProviderProps.errors[0] }}</p>
+            </div>
+          </validation-provider>
+          <ul class="data">
+            <li>Shop: {{ shop.name }}</li>
+            <li>Date:  {{ changeDateFormat }}</li>
+            <li>Time:  {{ time }}</li>
+            <li>Number:  {{ number }}人</li>
+          </ul>
+          <button class="reservation-button" @click="reservation" :disabled="ObserverProps.invalid || !ObserverProps.validated" >予約する</button>
+        </validation-observer>
       </div>
     </div>
   </div>
@@ -42,14 +59,20 @@
 
 <script>
 import HeaderAuth from "../components/HeaderAuth";
+import BackButton from "../components/BackButton";
 import axios from "axios";
+import { extend, ValidationProvider, ValidationObserver } from 'vee-validate';
+import { required, numeric } from 'vee-validate/dist/rules';
+// バリデーションルール
+extend('required', required);
+extend('required', numeric);
 export default {
   props: {
     shop_id: String
   },
   data() {
     return {
-      date: "",
+      date: this.changeDateFormat,
       time: "10:00",
       number: 1,
       shop: {
@@ -179,6 +202,11 @@ export default {
   },
   created() {
     this.getShop();
+    var today = new Date();
+    var y = today.getFullYear();
+    var m = ('00' + (today.getMonth()+1)).slice(-2);
+    var d = ('00' + today.getDate()).slice(-2);
+    this.date = (y + '-' + m + '-' + d);
   },
   computed: {
     changeDateFormat() {
@@ -186,13 +214,18 @@ export default {
       var y = today.getFullYear();
       var m = ('00' + (today.getMonth()+1)).slice(-2);
       var d = ('00' + today.getDate()).slice(-2);
+
+
       return (y + '-' + m + '-' + d);
 
       //return this.date.replaceAll('-', '/');
     }
   },
   components: {
-    HeaderAuth
+    HeaderAuth,
+    BackButton,
+    ValidationProvider,
+    ValidationObserver,
   },
 };
 </script>

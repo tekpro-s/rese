@@ -6,66 +6,194 @@
       <div >
         <h2 class="title">{{this.$store.state.user.name}}さんの予約状況</h2>
         <div class="reservation" v-for="(reservation, index) in reservations" :key="reservation.id" >
-          <ul>
-            <li>予約{{index+1}}</li>
-            <li>Shop: {{reservation.shop_id}}</li>
-            <li>Date:  {{reservation.date}}</li>
-            <li>Time:  {{reservation.time}}</li>
-            <li>Number:  {{reservation.number}}人</li>
+          <validation-observer ref="obs" v-slot="ObserverProps">
+           <ul>
+                <li>予約{{index+1}}</li>
+                <li>Shop: {{reservation.shop.name}}</li>
+
+              <validation-provider name="date">
+                <div slot-scope="ProviderProps" rules="required">
+                  <li v-if="active[index]">Date:  {{reservation.date}}</li>
+                  <li v-else><input type="date" name="date" v-model="reservation.date"/></li>
+                  <p class="error">{{ ProviderProps.errors[0] }}</p>
+                </div>
+              </validation-provider>
+              <validation-provider name="time">
+                <div slot-scope="ProviderProps" rules="required">
+                  <li v-if="active[index]">Time:  {{reservation.time}}</li>
+                  <li v-else>
+                    <select name="time" v-model="reservation.time">
+                      <option v-for="time in times" :key="time.id" :value="time.time">{{time.time}}</option>
+                    </select>
+                    <p class="error">{{ ProviderProps.errors[0] }}</p>
+                  </li>
+                </div>
+              </validation-provider>
+
+              <validation-provider name="number" rulses="required|numeric">
+               <div slot-scope="ProviderProps" >
+                  <li v-if="active[index]">Number:  {{reservation.number}}人</li>
+                  <li v-else>
+                    <select id="number" name="number" v-model="reservations[index].number">
+                      <option value="">選択してください</option>
+                      <option value="1">1人</option>
+                      <option value="2">2人</option>
+                      <option value="3">3人</option>
+                      <option value="4">4人</option>
+                    </select>
+                    <p class="error">{{ ProviderProps.errors[0] }}</p>
+                  </li>
+                </div>
+              </validation-provider>
+  
           </ul>
-          <img class="icon" src="../assets/cancel.png" @click="cancel(reservation.shop_id, reservation.id, index)" alt />
+            <img class="icon" src="../assets/cancel.png" @click="cancel(reservation.shop_id, reservation.id, index)" alt />
+            <img class="icon" src="../assets/edit.png" @click="edit(reservation.id, index)" alt  :disabled="ObserverProps.invalid || !ObserverProps.validated" />
+          </validation-observer>
         </div>
       </div>
       <div class="like">
         <h2 class="title">お気に入り店舗</h2>
-        <div class="home flex">
-            <div class="card" v-for="(shop) in filteredShops" :key="shop.id" >
-            {{shop.likes}}
-              <img
-                class="card-img"
-                :src= shop.image_url
-              />
-              <div class="card-content">
-                <h3 class="card-title">{{ shop.name }}</h3>
-              </div>
-              <div class="flex">
-                <p class="area" @click="area(shop.area.name)">#{{shop.area.name}}</p>
-                <p class="genre" @click="genre(shop.genre.name)">#{{shop.genre.name}}</p>
-              </div>
-              <div class="flex">
-                <div class="card-link">
-                  <button @click="detail(shop.id)">詳しくみる</button>s
-                </div>
-                <img class="icon" src="../assets/like_true.png" @click="deleteFav(shop.id-1)" alt />
-              </div>
-            </div>
-          </div>
-        </div>
+        <ShopCard area="" genre="" keyword="" />
+      </div>
     </div>
  </div>
 </template>
 
 <script>
 import HeaderAuth from "../components/HeaderAuth";
+import ShopCard from "../components/ShopCard";
 import axios from "axios";
+import { extend, ValidationProvider, ValidationObserver } from 'vee-validate';
+import { required, numeric } from 'vee-validate/dist/rules';
+// バリデーションルール
+extend('required', required);
+extend('required', numeric);
 export default {
   data() {
     return {
       email: this.email,
       password: this.password,
+      active: [],
       reservations: [],
       likes: [],
-      shops: []
+      shops: [],
+      times: [
+        {
+          id: 1,
+          time: "10:00:00"
+        },
+        {
+          id: 2,
+          time: "10:30:00"
+        },
+        {
+          id: 3,
+          time: "11:00:00"
+        },
+        {
+          id: 4,
+          time: "11:30:00"
+        },
+        {
+          id: 5,
+          time: "12:00:00"
+        },
+        {
+          id: 6,
+          time: "12:30:00"
+        },
+        {
+          id: 7,
+          time: "13:00:00"
+        },
+        {
+          id: 8,
+          time: "13:30:00"
+        },
+        {
+          id: 9,
+          time: "14:00:00"
+        },
+        {
+          id: 10,
+          time: "14:30:00"
+        },
+        {
+          id: 11,
+          time: "15:00:00"
+        },
+        {
+          id: 12,
+          time: "15:30:00"
+        },
+        {
+          id: 13,
+          time: "16:00:00"
+        },
+        {
+          id: 14,
+          time: "16:30:00"
+        },
+        {
+          id: 15,
+          time: "17:00:00"
+        },
+        {
+          id: 16,
+          time: "17:30:00"
+        },
+        {
+          id: 17,
+          time: "18:00:00"
+        },
+        {
+          id: 18,
+          time: "18:30:00"
+        },
+        {
+          id: 19,
+          time: "19:00:00"
+        },
+        {
+          id: 20,
+          time: "19:30:00"
+        },
+        {
+          id: 21,
+          time: "20:00:00"
+        },
+      ]
     };
   },
   components: {
-    HeaderAuth
+    HeaderAuth,
+    ShopCard,
+    ValidationProvider,
+    ValidationObserver,
   },
   methods: {
+    // 積み上げ更新
+    async edit(reservation_id, index) {
+      // console.log(this.reservations[index].date + " " + this.reservations[index].time + " " + this.reservations[index].number);
+      if (!this.active[index]) {
+          const reservation = await axios.put("http://localhost:8000/api/v1/reservations/" + reservation_id, {
+              date: this.reservations[index].date,
+              time: this.reservations[index].time,
+              number: this.reservations[index].number,
+          });
+
+          console.log(reservation);
+      }
+      console.log(this.active[index] + " " + index);
+      //this.active[index] = !this.active[index];
+      this.$set(this.active, index, !this.active[index]);
+      console.log(this.active[index] + " " + index);
+    },
     async cancel(shop_id, reservation_id, index){
       try {
         const reservations = await axios.delete("http://localhost:8000/api/v1/shops/" + shop_id + "/reservations", {
-          params: { reservation_id: reservation_id }
+          reservation_id: reservation_id
         });
         console.log(reservations);
 
@@ -74,6 +202,11 @@ export default {
       } catch (e) {
           alert(e);
       }
+    },
+    detail(id) {
+      this.$store.commit("area", "");
+      this.$store.commit("genre", "");
+      this.$router.push({ name: 'Detail', params: { shop_id: id } })
     },
     area(area_name) {
       this.$store.commit("area", area_name);
@@ -109,18 +242,20 @@ export default {
     async getReservations() {
       const reservations = await axios.get("http://localhost:8000/api/v1/users/" + this.$store.state.user.id + "/reservations");
       this.reservations = reservations.data.data;
+
+      for (const i in this.reservations) {
+        this.active.push(true);
+        console.log(i);
+      }
+
       console.log(this.reservations);
+      console.log(this.active);
     },
     async getLikes() {
       const likes = await axios.get("http://localhost:8000/api/v1/users/" + this.$store.state.user.id + "/likes"  );
       this.likes = likes.data.data;
       console.log(this.likes);
     },
-    async getShops() {
-      const shops = await axios.get("http://localhost:8000/api/v1/shops");
-      this.shops = shops.data.data;
-      console.log(this.shops);
-    }
   },
   computed: {
     filteredShops() {
@@ -140,23 +275,11 @@ export default {
       }
 
       return shops;
-    },
-    // filteredReservations() {
-    //   // ログインユーザーに紐づく予約情報を取得
-    //   const reservations = [];
-
-    //   for (const i in this.reservations) {
-    //     const reservation = this.reservations[i];
-    //     reservations.push(reservation);
-    //   }
-
-    //   return reservations;
-    // },
+    }
   },
   created() {
     this.getReservations();
     this.getLikes();
-    this.getShops();
   },
 };
 </script>
@@ -255,8 +378,9 @@ export default {
 }
 .icon {
   padding: 20px 0 10px;
-  width: 10%;
-  height: 10%;
+  margin: 0 10px 0 10px ;
+  width: 8%;
+  height: 8%;
   cursor: pointer;
 }
 

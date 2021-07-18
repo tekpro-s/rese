@@ -4,10 +4,21 @@
     <div class="card">
       <h2>Registration</h2>
       <div class="form">
-        <input placeholder="Username" type="text" v-model="name" />
-        <input placeholder="Email" type="email" v-model="email" />
-        <input placeholder="Password" type="password" v-model="password" />
-        <button @click="auth">登録</button>
+        <validation-observer ref="obs" v-slot="ObserverProps">
+          <validation-provider v-slot="{errors}" rules="required">
+              <input name="name" placeholder="Username" type="text" v-model="name" />
+              <p class="error">{{ errors[0] }}</p>
+          </validation-provider>
+          <validation-provider v-slot="{errors}" rules="required|email">
+              <input name="email" placeholder="Email" type="email" v-model="email" />
+              <p class="error">{{ errors[0] }}</p>
+          </validation-provider>
+          <validation-provider v-slot="{errors}" rules="required|min:8|max:20">
+              <input name="password" placeholder="Password" type="password" v-model="password" />
+              <p class="error">{{ errors[0] }}</p>
+          </validation-provider>
+          <button :disabled="ObserverProps.invalid || !ObserverProps.validated">登録</button>
+        </validation-observer>
       </div>
     </div>
   </div>
@@ -16,6 +27,14 @@
 <script>
 import HeaderAuth from "../components/HeaderAuth";
 import axios from "axios";
+import { extend, ValidationProvider, ValidationObserver } from 'vee-validate';
+import { required, email, min, max } from 'vee-validate/dist/rules';
+// バリデーションルール
+extend('required', required);
+extend('email', email);
+extend('min', min);
+extend('max', max);
+
 export default {
   data() {
     return {
@@ -25,7 +44,9 @@ export default {
     };
   },
   components: {
-    HeaderAuth
+    HeaderAuth,
+    ValidationProvider,
+    ValidationObserver,
   },
   methods: {
     async auth() {
