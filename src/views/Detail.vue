@@ -40,6 +40,7 @@
                 <option value="2">2人</option>
                 <option value="3">3人</option>
                 <option value="4">4人</option>
+                <option value="5">5人</option>
               </select>
               <p class="error">{{ ProviderProps.errors[0] }}</p>
             </div>
@@ -54,12 +55,24 @@
         </validation-observer>
       </div>
     </div>
+    <div>
+      <PostComment :shop_id="shop_id" />
+      <div class="card" v-for="comment in shop.comments" :key="comment.id" >
+        <ul class="data">
+          <li>ユーザーID: {{ comment.user_id }}</li>
+          <li>コメント:  {{ comment.content }}</li>
+          <li>評価:  {{ comment.id }}</li>
+          <li>日付:  {{ comment.updated_at }}</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import HeaderAuth from "../components/HeaderAuth";
 import BackButton from "../components/BackButton";
+import PostComment from "../components/PostComment";
 import axios from "axios";
 import { extend, ValidationProvider, ValidationObserver } from 'vee-validate';
 import { required, numeric } from 'vee-validate/dist/rules';
@@ -215,15 +228,13 @@ export default {
       var m = ('00' + (today.getMonth()+1)).slice(-2);
       var d = ('00' + today.getDate()).slice(-2);
 
-
       return (y + '-' + m + '-' + d);
-
-      //return this.date.replaceAll('-', '/');
     }
   },
   components: {
     HeaderAuth,
     BackButton,
+    PostComment,
     ValidationProvider,
     ValidationObserver,
   },

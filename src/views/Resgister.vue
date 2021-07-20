@@ -27,7 +27,7 @@
 <script>
 import HeaderAuth from "../components/HeaderAuth";
 import axios from "axios";
-import { extend, ValidationProvider, ValidationObserver } from 'vee-validate';
+import { extend, ValidationProvider, ValidationObserver } from 'vee-validate/dist/vee-validate.full'
 import { required, email, min, max } from 'vee-validate/dist/rules';
 // バリデーションルール
 extend('required', required);

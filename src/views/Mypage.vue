@@ -9,7 +9,7 @@
           <validation-observer ref="obs" v-slot="ObserverProps">
            <ul>
                 <li>予約{{index+1}}</li>
-                <li>Shop: {{reservation.shop.name}}</li>
+                <li>Shop:{{reservation.shop.name}}</li>
 
               <validation-provider name="date">
                 <div slot-scope="ProviderProps" rules="required">
