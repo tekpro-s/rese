@@ -3,6 +3,7 @@
     <div class="left-padding">
       <button class="comment-button" @click="openModal">投稿する</button>
     </div>
+    {{shop}}
     <div id="overlay" v-if="show">
       <div id="content">
         <div class="comment">
@@ -21,6 +22,16 @@
         <button @click="closeModal">閉じる</button>
       </div>
     </div>
+    <div>
+      <div class="reservation" v-for="comment in shop.comments" :key="comment.id" >
+        <ul class="data">
+          <li>ユーザーID: {{ comment.user_id }}</li>
+          <li>コメント:  {{ comment.content }}</li>
+          <li>評価:  {{ comment.evaluation }}</li>
+          <li>日付:  {{ comment.updated_at }}</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -28,7 +39,7 @@
 import axios from "axios";
 export default {
   props: {
-    shop_id: String
+    shop: Object
   },
   data() {
     return {
@@ -46,21 +57,26 @@ export default {
     },
     async send() {
       try {
+        //コメントを投稿する
         this.show = false;
         console.log(this.$store.state.user.id);
+        console.log(this.shop.id);
         console.log(this.evaluation);
         console.log(this.comment);
-        const comment = await axios.post("http://127.0.0.1:8000/api/v1/shops/"  + this.shop_id + "/comments", {
+        const comment = await axios.post("http://127.0.0.1:8000/api/v1/shops/"  + this.shop.id + "/comments", {
           user_id: this.$store.state.user.id,
           evaluation: this.evaluation,
           content: this.comment,
         })
+
+        // コメント一覧にコメントを追加する
+        this.shop.comments.push(comment.data.data)
         console.log(comment);
       } catch (error) {
         alert(error);
       }
     }
-  }
+  },
 }
 </script>
 
@@ -104,5 +120,13 @@ export default {
   margin-top: 10px;
   color: white;
   border: none;
+}
+.reservation {
+  background: #305DFF;
+  color: white;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px;
+  width: 50%;
 }
 </style>

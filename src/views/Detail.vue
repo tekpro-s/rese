@@ -56,15 +56,7 @@
       </div>
     </div>
     <div>
-      <PostComment :shop_id="shop_id" />
-      <div class="card" v-for="comment in shop.comments" :key="comment.id" >
-        <ul class="data">
-          <li>ユーザーID: {{ comment.user_id }}</li>
-          <li>コメント:  {{ comment.content }}</li>
-          <li>評価:  {{ comment.id }}</li>
-          <li>日付:  {{ comment.updated_at }}</li>
-        </ul>
-      </div>
+      <PostComment :shop="shop" />
     </div>
   </div>
 </template>
