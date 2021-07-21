@@ -56,6 +56,7 @@
       </div>
     </div>
     <div>
+      {{shop}}
       <PostComment :shop="shop" />
     </div>
   </div>
@@ -88,6 +89,7 @@ export default {
           name: ""
         }
       },
+      comments: [],
       times: [
         {
           id: 1,

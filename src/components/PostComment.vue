@@ -3,7 +3,7 @@
     <div class="left-padding">
       <button class="comment-button" @click="openModal">投稿する</button>
     </div>
-    {{shop}}
+
     <div id="overlay" v-if="show">
       <div id="content">
         <div class="comment">
@@ -23,12 +23,13 @@
       </div>
     </div>
     <div>
-      <div class="reservation" v-for="comment in shop.comments" :key="comment.id" >
-        <ul class="data">
-          <li>ユーザーID: {{ comment.user_id }}</li>
+      <div v-for="comment in shop.comments" :key="comment.id" >
+        <ul class="reservation data" v-if="comment.user">
+
+          <li>ユーザー名:  {{ comment.user.name }}</li>
           <li>コメント:  {{ comment.content }}</li>
           <li>評価:  {{ comment.evaluation }}</li>
-          <li>日付:  {{ comment.updated_at }}</li>
+          <li>日付:  {{ comment.created_at }}</li>
         </ul>
       </div>
     </div>
@@ -70,8 +71,15 @@ export default {
         })
 
         // コメント一覧にコメントを追加する
-        this.shop.comments.push(comment.data.data)
-        console.log(comment);
+        const user = {id: this.$store.state.user.id, name: this.$store.state.user.name}
+        console.log(user);
+        console.log(comment.data.data);
+        this.$set(comment.data.data, 'user', user)
+
+        this.shop.comments.unshift(comment.data.data)
+        //this.shop.comments.push(comment.data.data)
+        console.log(this.shop.comments);
+        console.log(comment.data.data);
       } catch (error) {
         alert(error);
       }
