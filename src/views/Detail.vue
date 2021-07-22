@@ -18,13 +18,13 @@
       <div class="reservation">
         <validation-observer ref="obs" v-slot="ObserverProps">
           <h2 class="reservation-title">予約</h2>
-          <validation-provider name="date" rules="required">
+          <validation-provider name="date" rules="">
             <div slot-scope="ProviderProps">
               <input class="flex" type="date" v-model="date"/>
               <p class="error">{{ ProviderProps.errors[0] }}</p>
             </div>
           </validation-provider>
-          <validation-provider name="time" rules="required">
+          <validation-provider name="time" rules="">
             <div slot-scope="ProviderProps">
               <select class="flex" name="time" v-model="time">
                 <option v-for="time in times" :key="time.id" :value="time.time">{{time.time}}</option>
@@ -32,7 +32,7 @@
               <p class="error">{{ ProviderProps.errors[0] }}</p>
             </div>
           </validation-provider>
-          <validation-provider name="number" rules="required|numeric">
+          <validation-provider name="number" rules="required">
             <div slot-scope="ProviderProps">
               <select id="number" name="number" v-model="number">
                 <option value="">選択してください</option>
@@ -47,7 +47,7 @@
           </validation-provider>
           <ul class="data">
             <li>Shop: {{ shop.name }}</li>
-            <li>Date:  {{ changeDateFormat }}</li>
+            <li>Date:  {{ date }}</li>
             <li>Time:  {{ time }}</li>
             <li>Number:  {{ number }}人</li>
           </ul>
@@ -67,20 +67,20 @@ import HeaderAuth from "../components/HeaderAuth";
 import BackButton from "../components/BackButton";
 import PostComment from "../components/PostComment";
 import axios from "axios";
-import { extend, ValidationProvider, ValidationObserver } from 'vee-validate';
+import { extend, ValidationProvider, ValidationObserver } from 'vee-validate/dist/vee-validate.full'
 import { required, numeric } from 'vee-validate/dist/rules';
 // バリデーションルール
 extend('required', required);
 extend('required', numeric);
 export default {
   props: {
-    shop_id: String
+    shop_id: Number
   },
   data() {
     return {
-      date: this.changeDateFormat,
+      date: "",
       time: "10:00",
-      number: 1,
+      number: "1",
       shop: {
         area: {
           name: ""
@@ -174,6 +174,14 @@ export default {
         {
           id: 21,
           time: "20:00"
+        },
+        {
+          id: 22,
+          time: "20:30"
+        },
+        {
+          id: 23,
+          time: "21:00"
         },
       ]
     };

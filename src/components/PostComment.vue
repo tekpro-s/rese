@@ -6,7 +6,7 @@
 
     <div id="overlay" v-if="show">
       <div id="content">
-        <div class="comment">
+        <div >
           <select placeholder="評価" id="evaluation" name="evaluation" v-model="evaluation" class="flex">
             <option value="">評価を選択してください</option>
             <option value="5">5（とても良い）</option>
@@ -24,12 +24,15 @@
     </div>
     <div>
       <div v-for="comment in shop.comments" :key="comment.id" >
-        <ul class="reservation data" v-if="comment.user">
+        <ul class="comment" v-if="comment.user">
 
-          <li>ユーザー名:  {{ comment.user.name }}</li>
-          <li>コメント:  {{ comment.content }}</li>
-          <li>評価:  {{ comment.evaluation }}</li>
-          <li>日付:  {{ comment.created_at }}</li>
+          <li><b>{{ comment.user.name }}さんのコメント</b></li>
+
+          <div class="top-banner" >
+            <li  v-for="n in comment.evaluation" :key="n"><img src="../assets/star.png"></li>
+          </div>
+          <li>{{ comment.content }}</li>
+          <li class="created_at">{{ comment.created_at | moment }}</li>
         </ul>
       </div>
     </div>
@@ -38,6 +41,7 @@
 
 <script>
 import axios from "axios";
+import moment from "moment";
 export default {
   props: {
     shop: Object
@@ -64,27 +68,52 @@ export default {
         console.log(this.shop.id);
         console.log(this.evaluation);
         console.log(this.comment);
-        const comment = await axios.post("http://127.0.0.1:8000/api/v1/shops/"  + this.shop.id + "/comments", {
-          user_id: this.$store.state.user.id,
-          evaluation: this.evaluation,
-          content: this.comment,
-        })
 
-        // コメント一覧にコメントを追加する
-        const user = {id: this.$store.state.user.id, name: this.$store.state.user.name}
-        console.log(user);
-        console.log(comment.data.data);
-        this.$set(comment.data.data, 'user', user)
+        //ユーザーの予約情報取得
+        const reservations = await axios.get("http://localhost:8000/api/v1/users/" + this.$store.state.user.id + "/reservations");
 
-        this.shop.comments.unshift(comment.data.data)
-        //this.shop.comments.push(comment.data.data)
-        console.log(this.shop.comments);
-        console.log(comment.data.data);
+        // 詳細情報のショップIDが、ショップに紐づく予約情報にあり、現在日が予約時刻を過ぎているか確認
+        const result = reservations.data.data.some((value) => {
+          console.log(value);
+          console.log(value.created_at + " | " + new Date());
+          console.log(moment(new Date()).isAfter(value.date));
+          return (value.shop_id == this.shop.id && moment(value.date).isAfter(new Date()));
+        });
+
+        console.log("aaaa "+result);
+
+        // 詳細情報のショップIDが、ショップに紐づく予約情報にあり、現在日が予約時刻を過ぎている場合コメント可能
+        if (result) {
+          const comment = await axios.post("http://localhost:8000/api/v1/shops/"  + this.shop.id + "/comments", {
+            user_id: this.$store.state.user.id,
+            evaluation: this.evaluation,
+            content: this.comment,
+          })
+
+          // コメント一覧にコメントを追加する
+          const user = {id: this.$store.state.user.id, name: this.$store.state.user.name}
+          console.log(user);
+          console.log(comment.data.data);
+          this.$set(comment.data.data, 'user', user)
+
+          this.shop.comments.unshift(comment.data.data)
+          //this.shop.comments.push(comment.data.data)
+          console.log(this.shop.comments);
+          console.log(comment.data.data);
+        } else {
+          alert("予約時刻を過ぎていないためコメント不可です");
+        }
+
       } catch (error) {
         alert(error);
       }
     }
   },
+  filters: {
+      moment: function (date) {
+          return moment(date).format('YYYY/MM/DD HH:mm');
+      }
+  }
 }
 </script>
 
@@ -129,12 +158,34 @@ export default {
   color: white;
   border: none;
 }
-.reservation {
+.comment {
   background: #305DFF;
   color: white;
   border-radius: 5px;
   padding: 10px;
   margin: 10px;
   width: 50%;
+  list-style: none;
+}
+.comment li {
+  margin-top: 10px;
+  
+}
+.top-banner{
+	display: flex;
+	flex-wrap:wrap;
+  
+}
+.top-banner li {
+	width: calc(20%/5);/*←画像を横に4つ並べる場合*/
+	box-sizing:border-box;
+}
+.top-banner li img {
+	max-width:100%; /*画像のはみだしを防ぐ*/
+	height: auto; /*画像の縦横比を維持 */
+}
+.created_at {
+  font-size: 12px;
+  margin-bottom: 10px;
 }
 </style>
