@@ -68,13 +68,12 @@ import BackButton from "../components/BackButton";
 import PostComment from "../components/PostComment";
 import axios from "axios";
 import { extend, ValidationProvider, ValidationObserver } from 'vee-validate/dist/vee-validate.full'
-import { required, numeric } from 'vee-validate/dist/rules';
+import { required } from 'vee-validate/dist/rules';
 // バリデーションルール
 extend('required', required);
-extend('required', numeric);
 export default {
   props: {
-    shop_id: Number
+    shop_id: String
   },
   data() {
     return {
