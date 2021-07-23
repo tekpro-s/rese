@@ -18,21 +18,24 @@
       <div class="reservation">
         <validation-observer ref="obs" v-slot="ObserverProps">
           <h2 class="reservation-title">予約</h2>
-          <validation-provider name="date" rules="">
+          <validation-provider name="日付" rules="required">
             <div slot-scope="ProviderProps">
               <input class="flex" type="date" v-model="date"/>
-              <p class="error">{{ ProviderProps.errors[0] }}</p>
+
+              <p>{{ ProviderProps.errors[0] }}</p>
+              <p v-if="!reservationDatetimeFlg">現在日時より以前の日時は指定できません。</p>
             </div>
           </validation-provider>
-          <validation-provider name="time" rules="">
+          <validation-provider name="時間" rules="required">
             <div slot-scope="ProviderProps">
               <select class="flex" name="time" v-model="time">
                 <option v-for="time in times" :key="time.id" :value="time.time">{{time.time}}</option>
               </select>
               <p class="error">{{ ProviderProps.errors[0] }}</p>
+              <p v-if="!reservationDatetimeFlg">現在日時より以前の日時は指定できません。</p>
             </div>
           </validation-provider>
-          <validation-provider name="number" rules="required">
+          <validation-provider name="人数" rules="required">
             <div slot-scope="ProviderProps">
               <select id="number" name="number" v-model="number">
                 <option value="">選択してください</option>
@@ -46,17 +49,16 @@
             </div>
           </validation-provider>
           <ul class="data">
-            <li>Shop: {{ shop.name }}</li>
-            <li>Date:  {{ date }}</li>
-            <li>Time:  {{ time }}</li>
-            <li>Number:  {{ number }}人</li>
+            <li>店舗名: {{ shop.name }}</li>
+            <li>予約日:  {{ changeDateFormat }}</li>
+            <li>予約時刻:  {{ time }}</li>
+            <li>予約人数:  {{ number }}人</li>
           </ul>
-          <button class="reservation-button" @click="reservation" :disabled="ObserverProps.invalid || !ObserverProps.validated" >予約する</button>
+          <button class="reservation-button" @click="reservation" :disabled="ObserverProps.invalid || !ObserverProps.validated || !reservationDatetimeFlg" >予約する</button>
         </validation-observer>
       </div>
     </div>
     <div>
-      {{shop}}
       <PostComment :shop="shop" />
     </div>
   </div>
@@ -67,10 +69,14 @@ import HeaderAuth from "../components/HeaderAuth";
 import BackButton from "../components/BackButton";
 import PostComment from "../components/PostComment";
 import axios from "axios";
-import { extend, ValidationProvider, ValidationObserver } from 'vee-validate/dist/vee-validate.full'
+import moment from "moment";
+import { extend, ValidationProvider, ValidationObserver, localize } from 'vee-validate/dist/vee-validate.full'
 import { required } from 'vee-validate/dist/rules';
+import ja from 'vee-validate/dist/locale/ja';
 // バリデーションルール
 extend('required', required);
+localize('ja', ja);
+
 export default {
   props: {
     shop_id: String
@@ -213,23 +219,26 @@ export default {
           alert(e);
       }
     },
-  },
-  created() {
-    this.getShop();
-    var today = new Date();
-    var y = today.getFullYear();
-    var m = ('00' + (today.getMonth()+1)).slice(-2);
-    var d = ('00' + today.getDate()).slice(-2);
-    this.date = (y + '-' + m + '-' + d);
-  },
-  computed: {
-    changeDateFormat() {
+    getToday() {
+      // 現在日取得
       var today = new Date();
       var y = today.getFullYear();
       var m = ('00' + (today.getMonth()+1)).slice(-2);
       var d = ('00' + today.getDate()).slice(-2);
-
       return (y + '-' + m + '-' + d);
+    }
+  },
+  created() {
+    this.getShop();
+    this.date = this.getToday();
+  },
+  computed: {
+    changeDateFormat() {
+      return this.date.replaceAll('-', '/');
+    },
+    reservationDatetimeFlg() {
+      // 予約日時が現在日より後ならtrue
+      return moment(this.date + " " + this.time).isAfter(new Date());
     }
   },
   components: {
@@ -253,6 +262,9 @@ export default {
   margin-top: 10px;
   color: white;
   border: none;
+}
+.reservation-button:disabled {
+  background-color: #a9a9a9;
 }
 .area {
   margin-right: 10px;

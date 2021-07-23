@@ -1,9 +1,8 @@
 <template>
   <div>
     <div class="left-padding">
-      <button class="comment-button" @click="openModal">投稿する</button>
+      <button :disabled="!commentButtonFlg" class="comment-button" @click="openModal">投稿する</button>
     </div>
-
     <div id="overlay" v-if="show">
       <div id="content">
         <validation-observer ref="obs" v-slot="ObserverProps">
@@ -68,6 +67,7 @@ export default {
       evaluation: "",
       comment: "",
       show: false,
+      reservations: [],
     };
   },
   methods: {
@@ -76,6 +76,13 @@ export default {
     },
     closeModal() {
       this.show = false;
+    },
+    async getReservations() {
+      //ユーザーの予約情報取得
+      const reservations = await axios.get("http://localhost:8000/api/v1/users/" + this.$store.state.user.id + "/reservations");
+      console.log(reservations);
+      this.reservations = reservations.data.data;
+      console.log(this.reservations);
     },
     async send() {
       try {
@@ -86,21 +93,9 @@ export default {
         console.log(this.evaluation);
         console.log(this.comment);
 
-        //ユーザーの予約情報取得
-        const reservations = await axios.get("http://localhost:8000/api/v1/users/" + this.$store.state.user.id + "/reservations");
-
-        // 詳細情報のショップIDが、ショップに紐づく予約情報にあり、現在日が予約時刻を過ぎているか確認
-        const result = reservations.data.data.some((value) => {
-          console.log(value);
-          console.log(value.date+ " " + value.time + " | " + new Date());
-          console.log(moment(new Date()).isAfter(value.date + " " + value.time));
-          return (value.shop_id == this.shop.id && moment(new Date()).isAfter(value.date+ " " + value.time));
-        });
-
-        console.log("aaaa "+result);
-
         // 詳細情報のショップIDが、ショップに紐づく予約情報にあり、現在日が予約時刻を過ぎている場合コメント可能
-        if (result) {
+        if (this.commentButtonFlg){
+
           const comment = await axios.post("http://localhost:8000/api/v1/shops/"  + this.shop.id + "/comments", {
             user_id: this.$store.state.user.id,
             evaluation: this.evaluation,
@@ -122,7 +117,7 @@ export default {
           this.evaluation = "";
           this.comment = "";
         } else {
-          alert("予約時刻を過ぎていないためコメント不可です");
+          alert("予約日時が現在日時以前のためコメント不可です");
         }
 
       } catch (error) {
@@ -139,6 +134,22 @@ export default {
     ValidationProvider,
     ValidationObserver,
   },
+  created() {
+    this.getReservations();
+  },
+  computed: {
+    commentButtonFlg() {
+        // 詳細情報のショップIDが、ショップに紐づく予約情報にあり、現在日が予約時刻を過ぎているか確認
+        const result = this.reservations.some((value) => {
+          console.log(value);
+          console.log(value.date+ " " + value.time + " | " + new Date());
+          console.log(moment(new Date()).isAfter(value.date + " " + value.time));
+          return (value.shop_id == this.shop.id && moment(new Date()).isAfter(value.date+ " " + value.time));
+        });
+      console.log(result);
+      return result;
+    },
+  }
 }
 </script>
 

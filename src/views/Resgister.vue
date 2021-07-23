@@ -5,15 +5,15 @@
       <h2>Registration</h2>
       <div class="form">
         <validation-observer ref="obs" v-slot="ObserverProps">
-          <validation-provider v-slot="{errors}" rules="required">
+          <validation-provider name="名前" v-slot="{errors}" rules="required">
               <input name="name" placeholder="Username" type="text" v-model="name" />
               <p class="error">{{ errors[0] }}</p>
           </validation-provider>
-          <validation-provider v-slot="{errors}" rules="required|email">
+          <validation-provider name="メールアドレス" v-slot="{errors}" rules="required|email">
               <input name="email" placeholder="Email" type="email" v-model="email" />
               <p class="error">{{ errors[0] }}</p>
           </validation-provider>
-          <validation-provider v-slot="{errors}" rules="required|min:8|max:20">
+          <validation-provider name="パスワード" v-slot="{errors}" rules="required|min:8|max:20">
               <input name="password" placeholder="Password" type="password" v-model="password" />
               <p class="error">{{ errors[0] }}</p>
           </validation-provider>
@@ -27,13 +27,19 @@
 <script>
 import HeaderAuth from "../components/HeaderAuth";
 import axios from "axios";
-import { extend, ValidationProvider, ValidationObserver } from 'vee-validate/dist/vee-validate.full'
+import { extend, ValidationProvider, ValidationObserver, localize } from 'vee-validate/dist/vee-validate.full'
 import { required, email, min, max } from 'vee-validate/dist/rules';
+import ja from 'vee-validate/dist/locale/ja';
+
 // バリデーションルール
 extend('required', required);
-extend('email', email);
+extend('email', {
+  ...email,
+  message: "有効なメールアドレスではありません"
+});
 extend('min', min);
 extend('max', max);
+localize('ja', ja);
 
 export default {
   data() {
@@ -102,5 +108,8 @@ export default {
   margin-right: 0px;
   border: none;
   color:white;
+}
+.form button:disabled {
+  background-color: #a9a9a9;
 }
 </style>
