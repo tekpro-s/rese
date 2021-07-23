@@ -2,9 +2,10 @@
   <div>
     <div class="left-padding">
       <button :disabled="!commentButtonFlg" class="comment-button" @click="openModal">投稿する</button>
+      {{active}}
     </div>
     <div id="overlay" v-if="show">
-      <div id="content">
+      <div id="content" class="modal">
         <validation-observer ref="obs" v-slot="ObserverProps">
           <div>
             <validation-provider name="evaluation" rules="required">
@@ -34,16 +35,37 @@
       </div>
     </div>
     <div>
-      <div v-for="comment in shop.comments" :key="comment.id" >
+      <div v-for="(comment,index) in shop.comments" :key="comment.id" >
         <ul class="comment" v-if="comment.user">
           {{comment}}
-          <li><b>{{ comment.user.name }}さんのコメント</b></li>
-
-          <div class="evaluation-star" >
-            {{comment.evaluation}}
-            <li v-for="n in comment.evaluation" :key="n"><img src="../assets/star.png">{{n}}</li>
+          <div class="flex">
+            <li><b>{{ comment.user.name }}さんのコメント</b></li>
+            <img class="icon" src="../assets/cancel.png" @click="cancel(comment.id, index)" alt />
+            <img class="icon" src="../assets/edit.png" @click="edit(comment.id, index)" alt />
           </div>
-          <li>{{ comment.content }}</li>
+          <div v-if="active[index]" class="evaluation-star" >
+            {{comment.evaluation}}
+            <li v-for="n in comment.evaluation" :key="n"><img src="../assets/star.png"></li>
+          </div>
+          <div v-else>
+            <select placeholder="評価" id="evaluation" name="evaluation" v-model="shop.comments[index].evaluation" class="flex">
+              <option value="">評価を選択してください</option>
+              <option value=5>5（とても良い）</option>
+              <option value=4>4（良い）</option>
+              <option value=3>3（普通）</option>
+              <option value=2>2（悪い）</option>
+              <option value=1>1（とても悪い）</option>
+            </select>
+          </div>
+          <div v-if="active[index]">
+            <li>{{ comment.content }}</li>
+          </div>
+          <div v-else>
+            <li>
+              <textarea placeholder="コメント" name="comment" v-model="shop.comments[index].content" class="flex" rows="4" cols="40" >
+              </textarea>
+            </li>
+          </div>
           <li class="created_at">{{ comment.created_at | moment }}</li>
         </ul>
       </div>
@@ -68,6 +90,7 @@ export default {
       comment: "",
       show: false,
       reservations: [],
+      active: [],
     };
   },
   methods: {
@@ -77,9 +100,58 @@ export default {
     closeModal() {
       this.show = false;
     },
+    // コメント更新
+    async edit(id, index) {
+      try {
+        if (!this.active[index]) {
+          console.log(this.shop.comments[index]);
+          console.log(this.shop.comments[index]);
+          const comment = await axios.put("http://localhost:8000/api/v1/comments/" + id, {
+            content: this.shop.comments[index].content,
+            evaluation: this.shop.comments[index].evaluation,
+          });
+
+          this.$set(this.shop.comments[index], 'evaluation', parseInt(this.shop.comments[index].evaluation));
+          console.log(index);
+          console.log(comment);
+        }
+        console.log(this.active[index] + " " + index);
+        //this.active[index] = !this.active[index];
+        this.$set(this.active, index, !this.active[index]);
+        console.log(this.active[index] + " " + index);
+
+      } catch (e) {
+          alert(e);
+      }
+    },
+    async cancel(id, index){
+      try {
+        console.log(this.shop.comments[index]);
+        if (this.shop.comments[index].user_id == this.$store.state.user.id) {
+          const comment = await axios.delete("http://localhost:8000/api/v1/comments/" + id, {
+          });
+          console.log(comment);
+          console.log(this.shop.comments);
+          this.shop.comments.splice(index, 1);
+          this.active.splice(index, 1);
+          console.log(id + index);
+        } else {
+          alert("自分のコメントのみ削除できます。");
+        }
+
+      } catch (e) {
+          alert(e);
+      }
+    },
     async getReservations() {
       //ユーザーの予約情報取得
       const reservations = await axios.get("http://localhost:8000/api/v1/users/" + this.$store.state.user.id + "/reservations");
+
+      for (const i in this.shop.comments) {
+        this.active.push(true);
+        console.log(i);
+      }
+
       console.log(reservations);
       this.reservations = reservations.data.data;
       console.log(this.reservations);
@@ -109,7 +181,8 @@ export default {
           this.$set(comment.data.data, 'user', user);
           this.$set(comment.data.data, 'evaluation', parseInt(comment.data.data.evaluation));
 
-          this.shop.comments.unshift(comment.data.data)
+          this.shop.comments.unshift(comment.data.data);
+          this.active.unshift(true);
           //this.shop.comments.push(comment.data.data)
           console.log(this.shop.comments);
           console.log(comment.data.data);
@@ -176,13 +249,15 @@ export default {
   justify-content: center;
 }
 
-#content select,textarea {
+#content select,
+#content textarea {
   margin-top: 5px;
   margin-bottom: 15px;
   margin-left: auto;
   margin-right: auto;
   border-radius: 10px;
 }
+
 .comment-button {
   width: 100px;
   text-align: center;
@@ -238,5 +313,14 @@ export default {
 }
 .comment-button:disabled {
   background-color: #a9a9a9;
+}
+.icon {
+  margin: 0 10px 0 10px;
+  width: 5%;
+  height: 5%;
+  cursor: pointer;
+}
+.comment textarea {
+  border-radius: 10px;
 }
 </style>

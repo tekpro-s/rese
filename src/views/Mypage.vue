@@ -40,6 +40,7 @@
                       <option value="2">2人</option>
                       <option value="3">3人</option>
                       <option value="4">4人</option>
+                      <option value="5">5人</option>
                     </select>
                     <p class="error">{{ ProviderProps.errors[0] }}</p>
                   </li>
@@ -162,6 +163,14 @@ export default {
         {
           id: 21,
           time: "20:00:00"
+        },
+        {
+          id: 22,
+          time: "20:30:00"
+        },
+        {
+          id: 23,
+          time: "21:00:00"
         },
       ]
     };
