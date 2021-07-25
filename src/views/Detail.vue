@@ -54,7 +54,7 @@
             <li>予約時刻:  {{ time }}</li>
             <li>予約人数:  {{ number }}人</li>
           </ul>
-          <button class="reservation-button" @click="reservation" :disabled="ObserverProps.invalid || !ObserverProps.validated || !reservationDatetimeFlg" >予約する</button>
+          <button class="reservation-button" @click="reservation" :disabled="ObserverProps.invalid || !reservationDatetimeFlg" >予約する</button>
         </validation-observer>
       </div>
     </div>

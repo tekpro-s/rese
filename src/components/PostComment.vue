@@ -2,7 +2,6 @@
   <div>
     <div class="left-padding">
       <button :disabled="!commentButtonFlg" class="comment-button" @click="openModal">投稿する</button>
-      {{active}}
     </div>
     <div id="overlay" v-if="show">
       <div id="content" class="modal">
@@ -29,7 +28,7 @@
               </div>
             </validation-provider>
           </div>
-          <button class="comment-button" @click="send" :disabled="ObserverProps.invalid || !ObserverProps.validated">投稿する</button>
+          <button class="comment-button" @click="send" :disabled="ObserverProps.invalid">投稿する</button>
           <button class="comment-button" @click="closeModal">閉じる</button>
         </validation-observer>
       </div>
@@ -37,36 +36,47 @@
     <div>
       <div v-for="(comment,index) in shop.comments" :key="comment.id" >
         <ul class="comment" v-if="comment.user">
-          {{comment}}
-          <div class="flex">
-            <li><b>{{ comment.user.name }}さんのコメント</b></li>
-            <img class="icon" src="../assets/cancel.png" @click="cancel(comment.id, index)" alt />
-            <img class="icon" src="../assets/edit.png" @click="edit(comment.id, index)" alt />
-          </div>
-          <div v-if="active[index]" class="evaluation-star" >
-            {{comment.evaluation}}
-            <li v-for="n in comment.evaluation" :key="n"><img src="../assets/star.png"></li>
-          </div>
-          <div v-else>
-            <select placeholder="評価" id="evaluation" name="evaluation" v-model="shop.comments[index].evaluation" class="flex">
-              <option value="">評価を選択してください</option>
-              <option value=5>5（とても良い）</option>
-              <option value=4>4（良い）</option>
-              <option value=3>3（普通）</option>
-              <option value=2>2（悪い）</option>
-              <option value=1>1（とても悪い）</option>
-            </select>
-          </div>
-          <div v-if="active[index]">
-            <li>{{ comment.content }}</li>
-          </div>
-          <div v-else>
-            <li>
-              <textarea placeholder="コメント" name="comment" v-model="shop.comments[index].content" class="flex" rows="4" cols="40" >
-              </textarea>
-            </li>
-          </div>
-          <li class="created_at">{{ comment.created_at | moment }}</li>
+          <validation-observer ref="obs" v-slot="ObserverProps">
+            <div class="flex">
+              <li><b>{{ comment.user.name }}さんのコメント</b></li>
+              <img class="icon right" src="../assets/edit.png" @click="edit(comment.id, index)" v-if="!ObserverProps.invalid" alt />
+              <img class="icon right" src="../assets/edit_disabled.png" v-else alt />
+              <img class="icon" src="../assets/cancel.png" @click="cancel(comment.id, index)" alt />
+            </div>
+            <div v-if="active[index]" class="evaluation-star" >
+              <li v-for="n in comment.evaluation" :key="n"><img src="../assets/star.png"></li>
+            </div>
+            <div v-else>
+              <validation-provider name="評価" rules="required">
+                <div slot-scope="ProviderProps">
+                  <select placeholder="評価" id="evaluation" name="evaluation" v-model="shop.comments[index].evaluation" class="flex">
+                    <option value="">評価を選択してください</option>
+                    <option value=5>5（とても良い）</option>
+                    <option value=4>4（良い）</option>
+                    <option value=3>3（普通）</option>
+                    <option value=2>2（悪い）</option>
+                    <option value=1>1（とても悪い）</option>
+                  </select>
+                  <p class="error">{{ ProviderProps.errors[0] }}</p>
+                </div>
+              </validation-provider>
+            </div>
+            <div v-if="active[index]">
+              <li>{{ comment.content }}</li>
+            </div>
+            <div v-else>
+              <validation-provider name="コメント" rules="required">
+                <div slot-scope="ProviderProps">
+                  <li>
+                    <textarea placeholder="コメント" name="comment" v-model="shop.comments[index].content" class="flex" rows="4" cols="40" >
+                    </textarea>
+                    <p class="error">{{ ProviderProps.errors[0] }}</p>
+                  </li>
+                </div>
+              </validation-provider>
+            </div>
+            <li class="created_at">{{ comment.created_at | moment }}</li>
+          </validation-observer>
         </ul>
       </div>
     </div>
@@ -103,22 +113,26 @@ export default {
     // コメント更新
     async edit(id, index) {
       try {
-        if (!this.active[index]) {
-          console.log(this.shop.comments[index]);
-          console.log(this.shop.comments[index]);
-          const comment = await axios.put("http://localhost:8000/api/v1/comments/" + id, {
-            content: this.shop.comments[index].content,
-            evaluation: this.shop.comments[index].evaluation,
-          });
+        if (this.shop.comments[index].user_id == this.$store.state.user.id) {
+          if (!this.active[index]) {
+            console.log(this.shop.comments[index]);
+            console.log(this.shop.comments[index]);
+            const comment = await axios.put("http://localhost:8000/api/v1/comments/" + id, {
+              content: this.shop.comments[index].content,
+              evaluation: this.shop.comments[index].evaluation,
+            });
 
-          this.$set(this.shop.comments[index], 'evaluation', parseInt(this.shop.comments[index].evaluation));
-          console.log(index);
-          console.log(comment);
+            this.$set(this.shop.comments[index], 'evaluation', parseInt(this.shop.comments[index].evaluation));
+            console.log(index);
+            console.log(comment);
+          }
+          console.log(this.active[index] + " " + index);
+          //this.active[index] = !this.active[index];
+          this.$set(this.active, index, !this.active[index]);
+          console.log(this.active[index] + " " + index);
+        } else {
+          alert("自分のコメントのみ更新できます。");
         }
-        console.log(this.active[index] + " " + index);
-        //this.active[index] = !this.active[index];
-        this.$set(this.active, index, !this.active[index]);
-        console.log(this.active[index] + " " + index);
 
       } catch (e) {
           alert(e);
@@ -315,12 +329,16 @@ export default {
   background-color: #a9a9a9;
 }
 .icon {
-  margin: 0 10px 0 10px;
+  padding: 10px 0 0px;
+  margin: 0 10px 0 20px;
   width: 5%;
   height: 5%;
   cursor: pointer;
 }
 .comment textarea {
   border-radius: 10px;
+}
+.right {
+  margin: 0 0 0 auto;
 }
 </style>

@@ -8,56 +8,62 @@
         <div class="reservation" v-for="(reservation, index) in reservations" :key="reservation.id" >
           <validation-observer ref="obs" v-slot="ObserverProps">
            <ul>
+            <div class="flex">
               <li>予約{{index+1}}</li>
-              <li>Shop:{{reservation.shop.name}}</li>
 
-              <validation-provider name="date">
-                <div slot-scope="ProviderProps" rules="required">
-                  <li v-if="active[index]">Date:  {{reservation.date}}</li>
-                  <li v-else><input type="date" name="date" v-model="reservation.date"/></li>
+              <img class="icon right" src="../assets/edit.png" @click="edit(reservation.id, index)" v-if="!ObserverProps.invalid" alt />
+              <img class="icon right" src="../assets/edit_disabled.png" v-else alt />
+              <img class="icon" src="../assets/cancel.png" @click="cancel(reservation.id, index)" alt />
+            </div>
+
+            <li>店舗名: {{reservation.shop.name}}</li>
+            <li v-if="active[index]">予約日:  {{reservation.date.replaceAll('-', '/')}}</li>
+            <li v-else>
+              <validation-provider name="日付" rules="required">
+                <div slot-scope="ProviderProps">
+                  <input type="date" name="date" v-model="reservation.date"/>
                   <p class="error">{{ ProviderProps.errors[0] }}</p>
                 </div>
               </validation-provider>
-              <validation-provider name="time">
-                <div slot-scope="ProviderProps" rules="required">
-                  <li v-if="active[index]">Time:  {{reservation.time}}</li>
-                  <li v-else>
-                    <select name="time" v-model="reservation.time">
-                      <option v-for="time in times" :key="time.id" :value="time.time">{{time.time}}</option>
-                    </select>
-                    <p class="error">{{ ProviderProps.errors[0] }}</p>
-                  </li>
-                </div>
-              </validation-provider>
+            </li>
 
-              <validation-provider name="number" rulses="required|numeric">
-               <div slot-scope="ProviderProps" >
-                  <li v-if="active[index]">Number:  {{reservation.number}}人</li>
-                  <li v-else>
-                    <select id="number" name="number" v-model="reservations[index].number">
-                      <option value="">選択してください</option>
-                      <option value="1">1人</option>
-                      <option value="2">2人</option>
-                      <option value="3">3人</option>
-                      <option value="4">4人</option>
-                      <option value="5">5人</option>
-                    </select>
-                    <p class="error">{{ ProviderProps.errors[0] }}</p>
-                  </li>
+            <li v-if="active[index]">予約時刻:  {{reservation.time}}</li>
+            <li v-else>
+              <validation-provider name="時間" rules="required">
+                <div slot-scope="ProviderProps">
+                  <select name="time" v-model="reservation.time">
+                    <option v-for="time in times" :key="time.id" :value="time.time">{{time.time}}</option>
+                  </select>
+                  <p class="error">{{ ProviderProps.errors[0] }}</p>
                 </div>
               </validation-provider>
-  
+            </li>
+
+            <li v-if="active[index]">予約人数:  {{reservation.number}}人</li>
+            <li v-else>
+              <validation-provider name="人数" rules="required">
+                <div slot-scope="ProviderProps" >
+                  <select id="number" name="number" v-model="reservations[index].number">
+                    <option value="">選択してください</option>
+                    <option value="1">1人</option>
+                    <option value="2">2人</option>
+                    <option value="3">3人</option>
+                    <option value="4">4人</option>
+                    <option value="5">5人</option>
+                  </select>
+                  <p class="error">{{ ProviderProps.errors[0] }}</p>
+                </div>
+              </validation-provider>
+            </li>
           </ul>
-            <img class="icon" src="../assets/cancel.png" @click="cancel(reservation.shop_id, reservation.id, index)" alt />
-            <img class="icon" src="../assets/edit.png" @click="edit(reservation.id, index)" alt  :disabled="ObserverProps.invalid || !ObserverProps.validated" />
-          </validation-observer>
-        </div>
-      </div>
-      <div class="like">
-        <h2 class="title">お気に入り店舗</h2>
-        <ShopCard area="" genre="" keyword="" />
+        </validation-observer>
       </div>
     </div>
+    <div class="like">
+      <h2 class="title">お気に入り店舗</h2>
+      <ShopCard area="" genre="" keyword="" />
+    </div>
+  </div>
  </div>
 </template>
 
@@ -65,11 +71,13 @@
 import HeaderAuth from "../components/HeaderAuth";
 import ShopCard from "../components/ShopCard";
 import axios from "axios";
-import { extend, ValidationProvider, ValidationObserver } from 'vee-validate';
-import { required, numeric } from 'vee-validate/dist/rules';
+import { extend, ValidationProvider, ValidationObserver, localize } from 'vee-validate/dist/vee-validate.full';
+import { required } from 'vee-validate/dist/rules';
+import ja from 'vee-validate/dist/locale/ja';
 // バリデーションルール
 extend('required', required);
-extend('required', numeric);
+localize('ja', ja);
+
 export default {
   data() {
     return {
@@ -82,95 +90,95 @@ export default {
       times: [
         {
           id: 1,
-          time: "10:00:00"
+          time: "10:00"
         },
         {
           id: 2,
-          time: "10:30:00"
+          time: "10:30"
         },
         {
           id: 3,
-          time: "11:00:00"
+          time: "11:00"
         },
         {
           id: 4,
-          time: "11:30:00"
+          time: "11:30"
         },
         {
           id: 5,
-          time: "12:00:00"
+          time: "12:00"
         },
         {
           id: 6,
-          time: "12:30:00"
+          time: "12:30"
         },
         {
           id: 7,
-          time: "13:00:00"
+          time: "13:00"
         },
         {
           id: 8,
-          time: "13:30:00"
+          time: "13:30"
         },
         {
           id: 9,
-          time: "14:00:00"
+          time: "14:00"
         },
         {
           id: 10,
-          time: "14:30:00"
+          time: "14:30"
         },
         {
           id: 11,
-          time: "15:00:00"
+          time: "15:00"
         },
         {
           id: 12,
-          time: "15:30:00"
+          time: "15:30"
         },
         {
           id: 13,
-          time: "16:00:00"
+          time: "16:00"
         },
         {
           id: 14,
-          time: "16:30:00"
+          time: "16:30"
         },
         {
           id: 15,
-          time: "17:00:00"
+          time: "17:00"
         },
         {
           id: 16,
-          time: "17:30:00"
+          time: "17:30"
         },
         {
           id: 17,
-          time: "18:00:00"
+          time: "18:00"
         },
         {
           id: 18,
-          time: "18:30:00"
+          time: "18:30"
         },
         {
           id: 19,
-          time: "19:00:00"
+          time: "19:00"
         },
         {
           id: 20,
-          time: "19:30:00"
+          time: "19:30"
         },
         {
           id: 21,
-          time: "20:00:00"
+          time: "20:00"
         },
         {
           id: 22,
-          time: "20:30:00"
+          time: "20:30"
         },
         {
           id: 23,
-          time: "21:00:00"
+          time: "21:00"
         },
       ]
     };
@@ -184,7 +192,7 @@ export default {
   methods: {
     // 積み上げ更新
     async edit(reservation_id, index) {
-      // console.log(this.reservations[index].date + " " + this.reservations[index].time + " " + this.reservations[index].number);
+
       if (!this.active[index]) {
           const reservation = await axios.put("http://localhost:8000/api/v1/reservations/" + reservation_id, {
               date: this.reservations[index].date,
@@ -193,9 +201,10 @@ export default {
           });
 
           console.log(reservation);
+      } else {
+        this.reservations[index].time = this.reservations[index].time.substr(0, 5);
       }
       console.log(this.active[index] + " " + index);
-      //this.active[index] = !this.active[index];
       this.$set(this.active, index, !this.active[index]);
       console.log(this.active[index] + " " + index);
     },
@@ -386,11 +395,14 @@ export default {
   cursor: pointer;
 }
 .icon {
-  padding: 20px 0 10px;
-  margin: 0 10px 0 10px ;
+  padding: 10px 0 0px;
+  margin: 0 10px 0 20px;
   width: 8%;
   height: 8%;
   cursor: pointer;
+}
+.right {
+  margin: 0 0 0 auto;
 }
 
 </style>
