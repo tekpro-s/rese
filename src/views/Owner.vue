@@ -1,6 +1,7 @@
 <template>
-  <div>
+  <div v-if="this.$store.state.user.role_id==2">
     <HeaderAuth />
+    <h2 class="title">店舗代表者画面</h2>
     <select class="search" v-model="area">
       <option value="">All area</option>
       <option v-for="area in areas" :key="area.id" :value="area.name">{{area.name}}</option>
@@ -11,6 +12,9 @@
     </select>
     <input class="search" placeholder="Search" v-model="keyword"/>
     <ShopCard :area="area" :genre="genre" :keyword="keyword" />
+  </div>
+  <div v-else>
+    <p>店舗代表者ユーザーのみアクセスできます</p>
   </div>
 </template>
 
@@ -51,7 +55,6 @@ export default {
     }
   },
   created() {
-
     this.getAreas();
     this.getGenres();
   },

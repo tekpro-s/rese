@@ -3,8 +3,12 @@ import Vuex from 'vuex'
 import createPersistedState from "vuex-persistedstate";
 import axios from "axios";
 import router from "../router/index";
+import VuePaginate from 'vue-paginate';
+import Paginate from 'vuejs-paginate'
 
-Vue.use(Vuex)
+Vue.use(VuePaginate);
+Vue.use(Paginate);
+Vue.use(Vuex);
 
 export default new Vuex.Store({
   plugins: [createPersistedState()],
@@ -47,6 +51,41 @@ export default new Vuex.Store({
       commit("auth", responseLogin.data.auth);
       commit("user", responseLogin.data.user);
       router.replace("/");
+    },
+    async login_owner({ commit }, { email, password }) {
+      const responseLogin = await axios.post(
+        "http://localhost:8000/api/v1/users/login",
+        {
+          email: email,
+          password: password,
+        }
+      );
+
+      if (responseLogin.data.user.role_id == 2) {
+        commit("auth", responseLogin.data.auth);
+        commit("user", responseLogin.data.user);
+        router.replace("/owner");
+      } else {
+        alert("店舗代表者ユーザーではありません");
+      }
+    },
+    async login_administrator({ commit }, { email, password }) {
+
+      const responseLogin = await axios.post(
+        "http://localhost:8000/api/v1/users/login",
+        {
+          email: email,
+          password: password,
+        }
+      );
+
+      if (responseLogin.data.user.role_id == 3) {
+        commit("auth", responseLogin.data.auth);
+        commit("user", responseLogin.data.user);
+        router.replace("/ownerRegister");
+      } else {
+        alert("管理者ユーザーではありません");
+      }
     },
     logout({ commit }) {
       axios

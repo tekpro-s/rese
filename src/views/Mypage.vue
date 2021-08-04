@@ -11,7 +11,7 @@
             <div class="flex">
               <li>予約{{index+1}}</li>
 
-              <img class="icon right" src="../assets/edit.png" @click="edit(reservation.id, index)" v-if="!ObserverProps.invalid" alt />
+              <img class="icon right" src="../assets/edit.png" @click="edit(reservation.shop_id, reservation.id, index)" v-if="!ObserverProps.invalid" alt />
               <img class="icon right" src="../assets/edit_disabled.png" v-else alt />
               <img class="icon" src="../assets/cancel.png" @click="cancel(reservation.id, index)" alt />
             </div>
@@ -27,7 +27,7 @@
               </validation-provider>
             </li>
 
-            <li v-if="active[index]">予約時刻:  {{reservation.time}}</li>
+            <li v-if="active[index]">予約時刻:  {{reservation.time.substr(0, 5)}}</li>
             <li v-else>
               <validation-provider name="時間" rules="required">
                 <div slot-scope="ProviderProps">
@@ -190,11 +190,12 @@ export default {
     ValidationObserver,
   },
   methods: {
-    // 積み上げ更新
-    async edit(reservation_id, index) {
+    // 予約更新
+    async edit(shop_id, reservation_id, index) {
 
       if (!this.active[index]) {
-          const reservation = await axios.put("http://localhost:8000/api/v1/reservations/" + reservation_id, {
+          const reservation = await axios.put("http://localhost:8000/api/v1/shops/" + shop_id +"/reservations", {
+              reservation_id: reservation_id,
               date: this.reservations[index].date,
               time: this.reservations[index].time,
               number: this.reservations[index].number,
@@ -274,26 +275,6 @@ export default {
       this.likes = likes.data.data;
       console.log(this.likes);
     },
-  },
-  computed: {
-    filteredShops() {
-      // いいねに紐づくショップ情報を取得
-      const shops = [];
-
-      for (const i in this.shops) {
-        const shop = this.shops[i];
-
-        // ログイン中のユーザーIDが、ショップに紐づくいいねリストにあるか確認
-        const result = shop.likes.some((value) => {
-          return value.user_id == this.$store.state.user.id;
-        });
-        if (result) {
-          shops.push(shop);
-        }
-      }
-
-      return shops;
-    }
   },
   created() {
     this.getReservations();

@@ -39,9 +39,9 @@
           <validation-observer ref="obs" v-slot="ObserverProps">
             <div class="flex">
               <li><b>{{ comment.user.name }}さんのコメント</b></li>
-              <img class="icon right" src="../assets/edit.png" @click="edit(comment.id, index)" v-if="!ObserverProps.invalid" alt />
+              <img class="icon right" src="../assets/edit.png" @click="edit(comment.shop_id, comment.id, index)" v-if="!ObserverProps.invalid" alt />
               <img class="icon right" src="../assets/edit_disabled.png" v-else alt />
-              <img class="icon" src="../assets/cancel.png" @click="cancel(comment.id, index)" alt />
+              <img class="icon" src="../assets/cancel.png" @click="cancel(comment.shop_id, comment.id, index)" alt />
             </div>
             <div v-if="active[index]" class="evaluation-star" >
               <li v-for="n in comment.evaluation" :key="n"><img src="../assets/star.png"></li>
@@ -111,23 +111,25 @@ export default {
       this.show = false;
     },
     // コメント更新
-    async edit(id, index) {
+    async edit(shop_id, comment_id, index) {
       try {
         if (this.shop.comments[index].user_id == this.$store.state.user.id) {
           if (!this.active[index]) {
+            console.log(shop_id);
             console.log(this.shop.comments[index]);
-            console.log(this.shop.comments[index]);
-            const comment = await axios.put("http://localhost:8000/api/v1/comments/" + id, {
+            console.log(this.shop.comments[index].content);
+            const comment = await axios.put("http://localhost:8000/api/v1/shops/" + shop_id + "/comments", {
+              comment_id: comment_id,
               content: this.shop.comments[index].content,
               evaluation: this.shop.comments[index].evaluation,
             });
-
+            console.log("http://localhost:8000/api/v1/shops/" + shop_id + "/comments");
+            console.log(comment_id+" "+this.shop.comments[index].content+" "+this.shop.comments[index].evaluation);
             this.$set(this.shop.comments[index], 'evaluation', parseInt(this.shop.comments[index].evaluation));
             console.log(index);
             console.log(comment);
           }
           console.log(this.active[index] + " " + index);
-          //this.active[index] = !this.active[index];
           this.$set(this.active, index, !this.active[index]);
           console.log(this.active[index] + " " + index);
         } else {
@@ -138,17 +140,19 @@ export default {
           alert(e);
       }
     },
-    async cancel(id, index){
+    async cancel(shop_id, comment_id, index){
       try {
         console.log(this.shop.comments[index]);
+        console.log(comment_id);
+        console.log(shop_id);
         if (this.shop.comments[index].user_id == this.$store.state.user.id) {
-          const comment = await axios.delete("http://localhost:8000/api/v1/comments/" + id, {
+          const comment = await axios.delete("http://localhost:8000/api/v1/shops/" + shop_id + "/comments", {
+            params: { comment_id: comment_id }
           });
           console.log(comment);
           console.log(this.shop.comments);
           this.shop.comments.splice(index, 1);
           this.active.splice(index, 1);
-          console.log(id + index);
         } else {
           alert("自分のコメントのみ削除できます。");
         }

@@ -1,8 +1,9 @@
 <template>
-  <div>
+  <div v-if="this.$store.state.user.role_id==3">
     <HeaderAuth />
+    <h2>管理画面</h2>
     <div class="card">
-      <h2>Registration</h2>
+      <h2>店舗側代表者ユーザー作成</h2>
       <div class="form">
         <validation-observer ref="obs" v-slot="ObserverProps">
           <validation-provider name="名前" v-slot="{errors}" rules="required">
@@ -17,10 +18,13 @@
               <input name="password" placeholder="Password" type="password" v-model="password" />
               <p class="error">{{ errors[0] }}</p>
           </validation-provider>
-          <button :disabled="ObserverProps.invalid || !ObserverProps.validated">登録</button>
+          <button :disabled="ObserverProps.invalid || !ObserverProps.validated" @click="auth">登録</button>
         </validation-observer>
       </div>
     </div>
+  </div>
+  <div v-else>
+    <p>管理者ユーザーのみアクセスできます</p>
   </div>
 </template>
 
@@ -60,10 +64,11 @@ export default {
         const users = await axios.post("http://localhost:8000/api/v1/users/registration", {
           name: this.name,
           email: this.email,
-          password: this.password
+          password: this.password,
+          role_id:2
         })
         console.log(users);
-        this.$router.push("/thanks");
+        alert('店舗代表者ユーザーを作成しました');
       } catch (error) {
         alert(error);
       }

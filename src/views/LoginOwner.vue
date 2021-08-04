@@ -3,7 +3,7 @@
    <HeaderAuth />
    <div class="card">
      <div class="card_title">
-      <h2>ログイン</h2>
+      <h2>店舗代表者ログイン</h2>
      </div>
      <div class="form">
         <input placeholder="Email" type="email" v-model="email" />
@@ -28,9 +28,9 @@ export default {
   },
   methods: {
     auth() {
-      this.$store.dispatch("login", {
+      this.$store.dispatch("login_owner", {
         email: this.email,
-        password: this.password
+        password: this.password,
       });
     }
   }

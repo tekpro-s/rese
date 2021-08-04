@@ -1,13 +1,13 @@
 <template>
  <div class="header flex">
-   <div class="left flex">
-     <img class="logo" src="../assets/menu.png" @click="$router.push('/mypage'); transition()"/>
-    <p>ログインユーザー：{{this.$store.state.user.name}}さん</p>
+   <div class="left flex" >
+    <img class="logo" src="../assets/menu.png" @click="$router.push('/mypage'); transition()" v-if="this.$store.state.auth"/>
+    <p v-if="this.$store.state.auth">ログインユーザー：{{this.$store.state.user.name}}さん</p>
    </div>
    <div class="right flex">
-     <router-link @click.native="transition" :to="{name:'Register'}" class="link">新規登録</router-link>
-     <router-link @click.native="transition" :to="{name:'Login'}" class="link">ログイン</router-link>
-     <p @click="$store.dispatch('logout'); transition()" class="link">ログアウト</p>
+     <router-link @click.native="transition" :to="{name:'Register'}" class="link" v-if="!this.$store.state.auth">新規登録</router-link>
+     <router-link @click.native="transition" :to="{name:'Login'}" class="link" v-if="!this.$store.state.auth">ログイン</router-link>
+     <p @click="$store.dispatch('logout'); transition()" class="link" v-if="this.$store.state.auth">ログアウト</p>
    </div>
  </div>
 </template>
