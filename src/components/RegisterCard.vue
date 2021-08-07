@@ -71,7 +71,10 @@ export default {
         alert(error);
       }
     }
-  }
+  },created() {
+    // 環境設定ファイルからURL取得
+    this.api_url = process.env.VUE_APP_API_BASE_URL;
+  },
 };
 </script>
 
