@@ -3,11 +3,7 @@ import Vuex from 'vuex'
 import createPersistedState from "vuex-persistedstate";
 import axios from "axios";
 import router from "../router/index";
-import VuePaginate from 'vue-paginate';
-import Paginate from 'vuejs-paginate'
 
-Vue.use(VuePaginate);
-Vue.use(Paginate);
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -16,7 +12,7 @@ export default new Vuex.Store({
     auth: "",
     user: "",
     area: "",
-    genre: "",
+    genre: ""
   },
   mutations: {
     auth(state, payload) {
@@ -41,7 +37,7 @@ export default new Vuex.Store({
   actions: {
     async login({ commit }, { email, password }) {
       const responseLogin = await axios.post(
-        "http://localhost:8000/api/v1/users/login",
+        process.env.VUE_APP_API_BASE_URL + "users/login",
         {
           email: email,
           password: password,
@@ -54,7 +50,7 @@ export default new Vuex.Store({
     },
     async login_owner({ commit }, { email, password }) {
       const responseLogin = await axios.post(
-        "http://localhost:8000/api/v1/users/login",
+        process.env.VUE_APP_API_BASE_URL + "users/login",
         {
           email: email,
           password: password,
@@ -72,7 +68,7 @@ export default new Vuex.Store({
     async login_administrator({ commit }, { email, password }) {
 
       const responseLogin = await axios.post(
-        "http://localhost:8000/api/v1/users/login",
+        process.env.VUE_APP_API_BASE_URL + "users/login",
         {
           email: email,
           password: password,
@@ -89,7 +85,7 @@ export default new Vuex.Store({
     },
     logout({ commit }) {
       axios
-        .post("http://localhost:8000/api/v1/users/logout", {
+        .post(process.env.VUE_APP_API_BASE_URL + "users/logout", {
           auth: this.state.auth,
         })
         .then((response) => {

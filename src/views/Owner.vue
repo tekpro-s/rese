@@ -33,7 +33,8 @@ export default {
       genres: [],
       area: this.$store.state.area,
       genre: this.$store.state.genre,
-      keyword: ""
+      keyword: "",
+      api_url: null
     }
   },
   methods: {
@@ -44,17 +45,19 @@ export default {
       this.genre = genre_name;
     },
     async getAreas() {
-      const areas = await axios.get("http://localhost:8000/api/v1/areas");
+      const areas = await axios.get(this.api_url + "areas");
       this.areas = areas.data.data;
       console.log(this.areas);
     },
     async getGenres() {
-      const genres = await axios.get("http://localhost:8000/api/v1/genres");
+      const genres = await axios.get(this.api_url + "genres");
       this.genres = genres.data.data;
       console.log(this.genres);
     }
   },
   created() {
+    // 環境設定ファイルからURL取得
+    this.api_url = process.env.VUE_APP_API_BASE_URL;
     this.getAreas();
     this.getGenres();
   },

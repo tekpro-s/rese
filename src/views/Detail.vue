@@ -188,7 +188,8 @@ export default {
           id: 23,
           time: "21:00"
         },
-      ]
+      ],
+      api_url: null
     };
   },
   methods: {
@@ -201,13 +202,13 @@ export default {
       this.$router.push("/");
     },
     async getShop() {
-      const shop = await axios.get("http://localhost:8000/api/v1/shops/" + this.shop_id);
+      const shop = await axios.get(this.api_url + "shops/" + this.shop_id);
       this.shop = shop.data.data;
       console.log(this.shop);
     },
     async reservation() {
       try {
-        const reservation = await axios.post("http://localhost:8000/api/v1/shops/" + this.shop_id + "/reservations", {
+        const reservation = await axios.post(this.api_url + "shops/" + this.shop_id + "/reservations", {
           user_id: this.$store.state.user.id,
           date: this.date,
           time: this.time,
@@ -229,6 +230,8 @@ export default {
     }
   },
   created() {
+    // 環境設定ファイルからURL取得
+    this.api_url = process.env.VUE_APP_API_BASE_URL;
     this.getShop();
     this.date = this.getToday();
   },

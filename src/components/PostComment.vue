@@ -118,12 +118,11 @@ export default {
             console.log(shop_id);
             console.log(this.shop.comments[index]);
             console.log(this.shop.comments[index].content);
-            const comment = await axios.put("http://localhost:8000/api/v1/shops/" + shop_id + "/comments", {
+            const comment = await axios.put(this.api_url + "shops/" + shop_id + "/comments", {
               comment_id: comment_id,
               content: this.shop.comments[index].content,
               evaluation: this.shop.comments[index].evaluation,
             });
-            console.log("http://localhost:8000/api/v1/shops/" + shop_id + "/comments");
             console.log(comment_id+" "+this.shop.comments[index].content+" "+this.shop.comments[index].evaluation);
             this.$set(this.shop.comments[index], 'evaluation', parseInt(this.shop.comments[index].evaluation));
             console.log(index);
@@ -146,7 +145,7 @@ export default {
         console.log(comment_id);
         console.log(shop_id);
         if (this.shop.comments[index].user_id == this.$store.state.user.id) {
-          const comment = await axios.delete("http://localhost:8000/api/v1/shops/" + shop_id + "/comments", {
+          const comment = await axios.delete(this.api_url + "shops/" + shop_id + "/comments", {
             params: { comment_id: comment_id }
           });
           console.log(comment);
@@ -163,7 +162,7 @@ export default {
     },
     async getReservations() {
       //ユーザーの予約情報取得
-      const reservations = await axios.get("http://localhost:8000/api/v1/users/" + this.$store.state.user.id + "/reservations");
+      const reservations = await axios.get(this.api_url + "users/" + this.$store.state.user.id + "/reservations");
 
       for (const i in this.shop.comments) {
         this.active.push(true);
@@ -186,7 +185,7 @@ export default {
         // 詳細情報のショップIDが、ショップに紐づく予約情報にあり、現在日が予約時刻を過ぎている場合コメント可能
         if (this.commentButtonFlg){
 
-          const comment = await axios.post("http://localhost:8000/api/v1/shops/"  + this.shop.id + "/comments", {
+          const comment = await axios.post(this.api_url + "shops/"  + this.shop.id + "/comments", {
             user_id: this.$store.state.user.id,
             evaluation: this.evaluation,
             content: this.comment,
@@ -201,7 +200,6 @@ export default {
 
           this.shop.comments.unshift(comment.data.data);
           this.active.unshift(true);
-          //this.shop.comments.push(comment.data.data)
           console.log(this.shop.comments);
           console.log(comment.data.data);
 
@@ -226,6 +224,8 @@ export default {
     ValidationObserver,
   },
   created() {
+    // 環境設定ファイルからURL取得
+    this.api_url = process.env.VUE_APP_API_BASE_URL;
     this.getReservations();
   },
   computed: {

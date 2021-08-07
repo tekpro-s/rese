@@ -5,7 +5,7 @@
       <div id="content" class="modal">
         <div>
           <ul>
-            <li>店舗名：<input placeholder="店舗名" name="name" v-model="name"  cols="40"/></li>
+            <li>店舗名：<input placeholder="店舗名" name="name" v-model="name" cols="40"/></li>
             <li>
               地域：
               <select class="search" v-model="area_id">
@@ -37,39 +37,31 @@
         <button class="owner-button" @click="closeModal">閉じる</button>
       </div>
     </div>
-    <paginate name="paginate-shops" :list="filteredShops" :per="10"> 
-      <div class="home flex">
-
-        <div class="card" v-for="shop in paginated('paginate-shops')" :key="shop.id" >
-          <img
-            class="card-img"
-            :src= "shop.image_url"
-          />
-          <div class="card-content">
-            <h2 class="card-title">{{ shop.name }}</h2>
+    <div class="home flex">
+      <div class="card" v-for="shop in filteredShops" :key="shop.id" >
+        <img
+          class="card-img"
+          :src= "shop.image_url"
+        />
+        <div class="card-content">
+          <h2 class="card-title">{{ shop.name }}</h2>
+        </div>
+        <div class="flex">
+          <p class="area" @click="setArea(shop.area.name)" >#{{shop.area.name}}</p>
+          <p class="genre" @click="setGenre(shop.genre.name)" >#{{shop.genre.name}}</p>
+        </div>
+        <div class="flex" v-if="!ownerFlg">
+          <div class="card-link">
+            <button @click="detail(shop.id)">詳しくみる</button>
           </div>
-          <div class="flex">
-            <p class="area" @click="setArea(shop.area.name)" >#{{shop.area.name}}</p>
-            <p class="genre" @click="setGenre(shop.genre.name)" >#{{shop.genre.name}}</p>
-          </div>
-          <div class="flex" v-if="!ownerFlg">
-            <div class="card-link">
-              <button @click="detail(shop.id)">詳しくみる</button>
-            </div>
-            <img v-if="!getFav[shop.id-1]" class="icon" src="../assets/like_false.png" @click="setFav(shop.id-1)" alt />
-            <img v-if="getFav[shop.id-1]" class="icon" src="../assets/like_true.png" @click="setFav(shop.id-1)" alt />
-          </div>
-          <div v-else>
-            <button class="owner-button" @click="openModal_update(shop.id-1)">更新</button>
-            <!--<button class="owner-button" @click="cancel(shop.id-1, shop.id)">削除</button>-->
-          </div>
+          <img v-if="!getFav[shop.id-1]" class="icon" src="../assets/like_false.png" @click="setFav(shop.id-1)" alt />
+          <img v-if="getFav[shop.id-1]" class="icon" src="../assets/like_true.png" @click="setFav(shop.id-1)" alt />
+        </div>
+        <div v-else>
+          <button class="owner-button" @click="openModal_update(shop.id-1)">更新</button>
         </div>
       </div>
-    </paginate>
-    <paginate-links for="paginate-shops" class="pagination" :classes="{
-      'ul.paginate-links > li': 'page-item',
-      'ul.paginate-links > li > a': 'page-link',
-    }" :show-step-links="true"></paginate-links>
+    </div>
   </div>
 </template>
 
@@ -88,7 +80,6 @@ export default {
       likes: [],
       areas: [],
       genres: [],
-      paginate: ['paginate-shops'],
       show: false,
       id: "",
       index: "",
@@ -97,6 +88,7 @@ export default {
       genre_id: "",
       summary: "",
       image_url: "",
+      api_url: null
     }
   },
   methods: {
@@ -131,7 +123,7 @@ export default {
         // いいねが存在するか確認
         if (result) {
           // いいねが存在する場合いいね削除
-          const likes = await axios.delete("http://localhost:8000/api/v1/shops/" + this.shops[index].id + "/likes", {
+          const likes = await axios.delete(this.api_url + "shops/" + this.shops[index].id + "/likes", {
             params: { user_id: this.$store.state.user.id }
           });
 
@@ -139,15 +131,14 @@ export default {
           
         } else {
           // いいねが存在しない場合いいね追加
-          const likes = await axios.put("http://localhost:8000/api/v1/shops/" + this.shops[index].id + "/likes", {
+          const likes = await axios.put(this.api_url + "shops/" + this.shops[index].id + "/likes", {
             user_id: this.$store.state.user.id
           });
 
           console.log(likes);
-          //console.log("a: " + likes.data.data.shop);
         }
         
-        const shop = await axios.get("http://localhost:8000/api/v1/shops/" + this.shops[index].id);
+        const shop = await axios.get(this.api_url + "shops/" + this.shops[index].id);
         this.shops.splice(index, 1, shop.data.data);
         console.log(shop);
 
@@ -157,17 +148,17 @@ export default {
       }
     },
     async getShops() {
-      const shops = await axios.get("http://localhost:8000/api/v1/shops");
+      const shops = await axios.get(this.api_url + "shops");
       this.shops = shops.data.data;
       console.log(this.shops);
     },
     async getAreas() {
-      const areas = await axios.get("http://localhost:8000/api/v1/areas");
+      const areas = await axios.get(this.api_url + "areas");
       this.areas = areas.data.data;
       console.log(this.areas);
     },
     async getGenres() {
-      const genres = await axios.get("http://localhost:8000/api/v1/genres");
+      const genres = await axios.get(this.api_url + "genres");
       this.genres = genres.data.data;
       console.log(this.genres);
     },
@@ -191,7 +182,7 @@ export default {
     },
     async send(){
       try {
-        const shops = await axios.post("http://localhost:8000/api/v1/shops", {
+        const shops = await axios.post(this.api_url + "shops", {
           name: this.name,
           area_id: this.area_id,
           genre_id: this.genre_id,
@@ -199,7 +190,7 @@ export default {
           image_url: this.image_url
         });
 
-        const shop = await axios.get("http://localhost:8000/api/v1/shops/" + shops.data.data.id);
+        const shop = await axios.get(this.api_url + "shops/" + shops.data.data.id);
 
         console.log(shop.data.data);
         this.shops.push(shop.data.data);
@@ -215,14 +206,14 @@ export default {
       console.log("adasddsfd:   ");
       try {
         console.log("adasd:   "+this.id);
-        await axios.put("http://localhost:8000/api/v1/shops/" + this.id, {
+        await axios.put(this.api_url + "shops/" + this.id, {
           name: this.name,
           area_id: this.area_id,
           genre_id: this.genre_id,
           summary: this.summary,
           image_url: this.image_url
         });
-        const shop = await axios.get("http://localhost:8000/api/v1/shops/" + this.id);
+        const shop = await axios.get(this.api_url + "shops/" + this.id);
 
         console.log(this.shops[index]);
         this.$set(this.shops, index, shop.data.data);
@@ -235,18 +226,6 @@ export default {
         alert(error);
       }
     },
-    // async cancel(index, shop_id){
-
-    //   try {
-    //     const comment = await axios.delete("http://localhost:8000/api/v1/shops/" + shop_id, {
-    //     });
-
-    //     this.shops.splice(index, 1);
-
-    //   } catch (e) {
-    //       alert(e);
-    //   }
-    // }
   },
   computed: {
     filteredShops() {
@@ -295,6 +274,8 @@ export default {
     },
   },
   created() {
+    // 環境設定ファイルからURL取得
+    this.api_url = process.env.VUE_APP_API_BASE_URL;
     this.getShops();
     this.getAreas();
     this.getGenres();
@@ -420,48 +401,5 @@ export default {
   margin-left: auto;
   margin-right: auto;
   border-radius: 10px;
-}
-
-.pagination {
-  display: flex;
-  list-style-type: none;
-  padding: 6px 12px;
-  text-align: center;
-}
-
-.ul.paginate-links > li {
-  display: inline;
-  margin: 0 2px;
-  padding: 0;
-  display: inline-block;
-  background:#9D50BB;
-  width: 50px;
-  height: 50px;
-  text-align: center;
-  position: relative;
-}
-
-.pagination li a{
-  vertical-align: middle;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  display:table;
-  color: #fff;
-  text-decoration: none;
-}
-
-.pagination li a span{
-  display:table-cell;
-  vertical-align:middle;
-}
-
-.pagination li a:hover,
-.pagination li a.active{
-  color: #000;
-  background: #ccf;
 }
 </style>

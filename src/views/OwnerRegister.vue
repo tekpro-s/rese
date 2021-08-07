@@ -1,49 +1,19 @@
 <template>
-  <div v-if="this.$store.state.user.role_id==3">
+  <div>
     <HeaderAuth />
-    <h2>管理画面</h2>
-    <div class="card">
-      <h2>店舗側代表者ユーザー作成</h2>
-      <div class="form">
-        <validation-observer ref="obs" v-slot="ObserverProps">
-          <validation-provider name="名前" v-slot="{errors}" rules="required">
-              <input name="name" placeholder="Username" type="text" v-model="name" />
-              <p class="error">{{ errors[0] }}</p>
-          </validation-provider>
-          <validation-provider name="メールアドレス" v-slot="{errors}" rules="required|email">
-              <input name="email" placeholder="Email" type="email" v-model="email" />
-              <p class="error">{{ errors[0] }}</p>
-          </validation-provider>
-          <validation-provider name="パスワード" v-slot="{errors}" rules="required|min:8|max:20">
-              <input name="password" placeholder="Password" type="password" v-model="password" />
-              <p class="error">{{ errors[0] }}</p>
-          </validation-provider>
-          <button :disabled="ObserverProps.invalid || !ObserverProps.validated" @click="auth">登録</button>
-        </validation-observer>
-      </div>
+    <div v-if="this.$store.state.user.role_id==3">
+      <h2>管理画面</h2>
+      <RegisterCard :role="3" />
+    </div >
+    <div v-else>
+      <p>管理者ユーザーのみアクセスできます</p>
     </div>
-  </div>
-  <div v-else>
-    <p>管理者ユーザーのみアクセスできます</p>
   </div>
 </template>
 
 <script>
 import HeaderAuth from "../components/HeaderAuth";
-import axios from "axios";
-import { extend, ValidationProvider, ValidationObserver, localize } from 'vee-validate/dist/vee-validate.full'
-import { required, email, min, max } from 'vee-validate/dist/rules';
-import ja from 'vee-validate/dist/locale/ja';
-
-// バリデーションルール
-extend('required', required);
-extend('email', {
-  ...email,
-  message: "有効なメールアドレスではありません"
-});
-extend('min', min);
-extend('max', max);
-localize('ja', ja);
+import RegisterCard from "../components/RegisterCard";
 
 export default {
   data() {
@@ -55,66 +25,7 @@ export default {
   },
   components: {
     HeaderAuth,
-    ValidationProvider,
-    ValidationObserver,
+    RegisterCard,
   },
-  methods: {
-    async auth() {
-      try {
-        const users = await axios.post("http://localhost:8000/api/v1/users/registration", {
-          name: this.name,
-          email: this.email,
-          password: this.password,
-          role_id:2
-        })
-        console.log(users);
-        alert('店舗代表者ユーザーを作成しました');
-      } catch (error) {
-        alert(error);
-      }
-    }
-  }
-};
+}
 </script>
-
-<style scoped>
-.card {
-  margin: 100px auto;
-  width: 350px;
-  background: #fff;
-  border-radius: 5px;
-  padding: 0 0 10px 0;
-}
-.card h2 {
-  color: white;
-  background: #305dff;
-  text-align: left;
-  padding: 20px;
-}
-.form {
-  text-align: center;
-}
-.form input {
-  margin-top: 15px;
-  width: 80%;
-  padding: 5px;
-  color: black;
-  border: none;
-  border-bottom: 1px solid #ccc;
-}
-.form button {
-  margin-top: 15px;
-  width: 100px;
-  text-align: center;
-  padding: 8px 0 10px;
-  background-color: #305dff;
-  border-radius: 10px;
-  cursor: pointer;
-  margin-right: 0px;
-  border: none;
-  color:white;
-}
-.form button:disabled {
-  background-color: #a9a9a9;
-}
-</style>

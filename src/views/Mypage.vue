@@ -180,7 +180,8 @@ export default {
           id: 23,
           time: "21:00"
         },
-      ]
+      ],
+      api_url: null,
     };
   },
   components: {
@@ -194,7 +195,7 @@ export default {
     async edit(shop_id, reservation_id, index) {
 
       if (!this.active[index]) {
-          const reservation = await axios.put("http://localhost:8000/api/v1/shops/" + shop_id +"/reservations", {
+          const reservation = await axios.put(this.api_url + "shops/" + shop_id +"/reservations", {
               reservation_id: reservation_id,
               date: this.reservations[index].date,
               time: this.reservations[index].time,
@@ -211,7 +212,7 @@ export default {
     },
     async cancel(shop_id, reservation_id, index){
       try {
-        const reservations = await axios.delete("http://localhost:8000/api/v1/shops/" + shop_id + "/reservations", {
+        const reservations = await axios.delete(this.api_url + "shops/" + shop_id + "/reservations", {
           reservation_id: reservation_id
         });
         console.log(reservations);
@@ -237,29 +238,21 @@ export default {
     },
     async deleteFav(index) {
       try {
-        const likes = await axios.delete("http://localhost:8000/api/v1/shops/" + this.shops[index].id + "/likes", {
+        const likes = await axios.delete(this.api_url + "shops/" + this.shops[index].id + "/likes", {
           params: { user_id: this.$store.state.user.id }
         });
 
-        console.log("http://localhost:8000/api/v1/shops/" + this.shops[index].id + "/likes");
         console.log(likes);
 
-        const shop = await axios.get("http://localhost:8000/api/v1/shops/" + this.shops[index].id);
+        const shop = await axios.get(this.api_url + "shops/" + this.shops[index].id);
         this.shops.splice(index, 1, shop.data.data);
-
-        //         this.$router.go({
-        //   path: this.$router.currentRoute.path,
-        //   force: true,
-        // });
-
-        //console.log(shop);
 
       } catch (error) {
         alert(error);
       }
     }, 
     async getReservations() {
-      const reservations = await axios.get("http://localhost:8000/api/v1/users/" + this.$store.state.user.id + "/reservations");
+      const reservations = await axios.get(this.api_url  + "users/" + this.$store.state.user.id + "/reservations");
       this.reservations = reservations.data.data;
 
       for (const i in this.reservations) {
@@ -271,12 +264,14 @@ export default {
       console.log(this.active);
     },
     async getLikes() {
-      const likes = await axios.get("http://localhost:8000/api/v1/users/" + this.$store.state.user.id + "/likes"  );
+      const likes = await axios.get(this.api_url + "users/" + this.$store.state.user.id + "/likes"  );
       this.likes = likes.data.data;
       console.log(this.likes);
     },
   },
   created() {
+    // 環境設定ファイルからURL取得
+    this.api_url = process.env.VUE_APP_API_BASE_URL;
     this.getReservations();
     this.getLikes();
   },

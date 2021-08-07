@@ -1,19 +1,19 @@
 <template>
   <div>
-    <HeaderAuth />
     <div class="card">
-      <h2>Registration</h2>
+      <h2 v-if="role=='3'"></h2>
+      <h2 v-else>会員登録</h2>
       <div class="form">
         <validation-observer ref="obs" v-slot="ObserverProps">
-          <validation-provider name="名前" v-slot="{errors}" rules="required">
+          <validation-provider name="名前" v-slot="{errors}" rules="required|max:255">
               <input name="name" placeholder="Username" type="text" v-model="name" />
               <p class="error">{{ errors[0] }}</p>
           </validation-provider>
-          <validation-provider name="メールアドレス" v-slot="{errors}" rules="required|email">
+          <validation-provider name="メールアドレス" v-slot="{errors}" rules="required|email|max:255">
               <input name="email" placeholder="Email" type="email" v-model="email" />
               <p class="error">{{ errors[0] }}</p>
           </validation-provider>
-          <validation-provider name="パスワード" v-slot="{errors}" rules="required|min:8|max:20">
+          <validation-provider name="パスワード" v-slot="{errors}" rules="required|min:8|max:255">
               <input name="password" placeholder="Password" type="password" v-model="password" />
               <p class="error">{{ errors[0] }}</p>
           </validation-provider>
@@ -25,7 +25,6 @@
 </template>
 
 <script>
-import HeaderAuth from "../components/HeaderAuth";
 import axios from "axios";
 import { extend, ValidationProvider, ValidationObserver, localize } from 'vee-validate/dist/vee-validate.full'
 import { required, email, min, max } from 'vee-validate/dist/rules';
@@ -43,24 +42,24 @@ localize('ja', ja);
 
 export default {
   props: {
-    role: Integer,
+    role: Number,
   },
   data() {
     return {
       name: "",
       email: "",
-      password: ""
+      password: "",
+      api_url: null
     };
   },
   components: {
-    HeaderAuth,
     ValidationProvider,
     ValidationObserver,
   },
   methods: {
     async auth() {
       try {
-        const users = await axios.post("http://localhost:8000/api/v1/users/registration", {
+        const users = await axios.post(this.api_url + "users/registration", {
           name: this.name,
           email: this.email,
           password: this.password,
