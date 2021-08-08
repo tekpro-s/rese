@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="card">
-      <h2 v-if="role=='3'"></h2>
+      <h2 v-if="role=='3'">店舗代表者登録</h2>
       <h2 v-else>会員登録</h2>
       <div class="form">
         <validation-observer ref="obs" v-slot="ObserverProps">
