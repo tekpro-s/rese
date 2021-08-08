@@ -13,7 +13,7 @@
 
               <img class="icon right" src="../assets/edit.png" @click="edit(reservation.shop_id, reservation.id, index)" v-if="!ObserverProps.invalid" alt />
               <img class="icon right" src="../assets/edit_disabled.png" v-else alt />
-              <img class="icon" src="../assets/cancel.png" @click="cancel(reservation.id, index)" alt />
+              <img class="icon" src="../assets/cancel.png" @click="cancel(reservation.shop_id,reservation.id, index)" alt />
             </div>
 
             <li>店舗名: {{reservation.shop.name}}</li>
