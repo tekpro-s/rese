@@ -59,14 +59,28 @@ export default {
   methods: {
     async auth() {
       try {
-        const users = await axios.post(this.api_url + "users/registration", {
-          name: this.name,
-          email: this.email,
-          password: this.password,
-          role_id:1
-        })
-        console.log(users);
-        this.$router.push("/thanks");
+        // 店舗代表者登録
+        if (role == '3') {
+          const users = await axios.post(this.api_url + "users/registration", {
+            name: this.name,
+            email: this.email,
+            password: this.password,
+            role_id:2
+          })
+          console.log(users);
+          alert('店舗代表者ユーザーを作成しました');
+          
+        } else {
+          const users = await axios.post(this.api_url + "users/registration", {
+            name: this.name,
+            email: this.email,
+            password: this.password,
+            role_id:1
+          })
+          console.log(users);
+          this.$router.push("/thanks");
+        }
+
       } catch (error) {
         alert(error);
       }
