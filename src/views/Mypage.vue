@@ -213,7 +213,7 @@ export default {
     async cancel(shop_id, reservation_id, index){
       try {
         const reservations = await axios.delete(this.api_url + "shops/" + shop_id + "/reservations", {
-          reservation_id: reservation_id
+          params: { reservation_id: reservation_id }
         });
         console.log(reservations);
 
