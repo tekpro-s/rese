@@ -14,3 +14,7 @@ yarn install
 yarn serve
 ```
 
+## ログイン画面パス
+一般ユーザログイン：　/login
+店舗代表者ログイン：　/loginOwner
+管理者ログイン：　/loginAdministrator
